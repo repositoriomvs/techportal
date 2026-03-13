@@ -52,7 +52,7 @@
                     @endforeach
                 </td>
                 <td class="px-5 py-3 hidden md:table-cell">
-                    <span class="text-xs text-gray-400 font-mono">{{ $usuario->created_at->format('d/m/Y') }}</span>
+                    <span class="text-xs text-gray-400 font-mono">{{ $usuario->created_at ? $usuario->created_at->format('d/m/Y') : '-' }}</span>
                 </td>
                 <td class="px-5 py-3">
                     <div class="flex items-center justify-end gap-2">
