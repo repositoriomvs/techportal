@@ -13,6 +13,8 @@ RUN curl -fsSL https://deb.nodesource.com/setup_20.x | bash - \
 
 WORKDIR /app
 
+COPY php.ini /usr/local/etc/php/conf.d/custom.ini
+
 COPY . .
 
 RUN composer install --optimize-autoloader --no-dev --no-scripts --no-interaction --ignore-platform-reqs
