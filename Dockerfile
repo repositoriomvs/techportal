@@ -18,7 +18,7 @@ WORKDIR /app
 
 COPY . .
 
-RUN composer install --optimize-autoloader --no-dev --no-scripts --no-interaction
+RUN composer install --optimize-autoloader --no-dev --no-scripts --no-interaction --ignore-platform-reqs
 
 RUN npm ci && npm run build
 
