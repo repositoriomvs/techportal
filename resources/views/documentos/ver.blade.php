@@ -156,7 +156,7 @@ function pdfViewer() {
         scale: 1.2,
         loading: true,
         visitaRegistrada: false,
-        pdfUrl: '{{ $documento->archivo ? Storage::url($documento->archivo) : "" }}',
+        pdfUrl: '{{ $documento->archivo ? secure_url(Storage::url($documento->archivo)) : "" }}',
 
         async init() {
             if (!this.pdfUrl) return;
