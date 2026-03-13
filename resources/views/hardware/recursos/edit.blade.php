@@ -12,6 +12,11 @@
 @endsection
 
 @section('content')
+@if($errors->any())
+    <div class="mb-4 bg-red-50 border border-red-200 text-red-800 rounded-lg px-4 py-3 text-sm">
+        <ul>@foreach($errors->all() as $e)<li>{{ $e }}</li>@endforeach</ul>
+    </div>
+@endif
 
 <div class="max-w-2xl">
     <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
