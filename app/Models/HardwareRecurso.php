@@ -27,4 +27,10 @@ class HardwareRecurso extends Model
     {
         return $this->belongsTo(User::class);
     }
+    protected $fillable = [
+    'hardware_modelo_id', 'hardware_tipo_id',
+    'nombre', 'descripcion', 'categoria',
+    'tipo', 'version', 'tamanio',
+    'archivo', 'url', 'user_id', 'icono'
+];
 }
