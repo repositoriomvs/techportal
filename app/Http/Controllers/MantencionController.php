@@ -35,7 +35,7 @@ class MantencionController extends Controller
     // ── CREAR ─────────────────────────────────────────────
 public function create()
 {
-    $itemsRaw = ItemMantencion::all();
+    $itemsRaw = MantencionItem::all();
     
     $items = $itemsRaw->groupBy('tipo_equipo')->map(fn($group) => $group->values())->toArray();
 
