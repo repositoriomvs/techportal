@@ -161,7 +161,7 @@ Route::get('/incidencias/sla/{cliente}/{prioridad}', function($clienteId, $prior
     return response()->json(
         \App\Models\SlaCliente::where('cliente_id', $clienteId)
             ->where('prioridad', $prioridad)
-            ->first(['horas_respuesta','horas_resolucion'])
+            ->first(['horas_respuesta', 'horas_resolucion', 'horas_cambio_equipo'])
     );
 })->middleware('auth');
 });
