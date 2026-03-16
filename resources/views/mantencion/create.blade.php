@@ -352,6 +352,34 @@ function eliminarEquipo(idx) {
     if (!confirm('¿Eliminar este equipo?')) return;
     document.getElementById(`equipo-${idx}`)?.remove();
 }
+    function guardarEquipo(idx) {
+    const tipo   = document.getElementById(`tipo-${idx}`)?.value;
+    const marca  = document.querySelector(`input[name="equipos[${idx}][marca]"]`)?.value;
+    const modelo = document.querySelector(`input[name="equipos[${idx}][modelo]"]`)?.value;
+    const serie  = document.querySelector(`input[name="equipos[${idx}][serie]"]`)?.value;
+    const estado = document.querySelector(`input[name="equipos[${idx}][estado_final]"]:checked`)?.value;
+    const obs    = document.querySelector(`textarea[name="equipos[${idx}][observaciones]"]`)?.value;
+
+    if (!tipo || !marca || !modelo || !serie || !estado || !obs) {
+        mostrarToast('Completa todos los campos del equipo antes de guardar.', 'error');
+        return;
+    }
+
+    // Badge verde
+    const badge = document.getElementById(`badge-${idx}`);
+    badge.textContent = '✓ Guardado';
+    badge.className = 'ml-auto text-xs font-mono bg-green-100 text-green-700 px-2 py-0.5 rounded-full';
+
+    // Deshabilitar botón guardar
+    const btnGuardar = document.querySelector(`#equipo-${idx} button[onclick="guardarEquipo(${idx})"]`);
+    if (btnGuardar) {
+        btnGuardar.disabled = true;
+        btnGuardar.innerHTML = '✓ Equipo guardado';
+        btnGuardar.className = 'flex-1 flex items-center justify-center gap-2 bg-green-600 text-white font-semibold py-2.5 rounded-lg text-sm cursor-not-allowed opacity-75';
+    }
+
+    mostrarToast(`Equipo ${idx} guardado correctamente.`, 'success');
+}
 
 // ═══════════════════════════════════════
 // CHECKLIST
