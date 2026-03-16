@@ -34,7 +34,17 @@ class AuthController extends Controller
             // Guardar ID de actividad en sesión para el logout
             session(['actividad_id' => $actividad->id]);
 
-            return redirect()->intended(route('dashboard'));
+            $user = Auth::user();
+
+if ($user->hasRole('agente') || $user->hasRole('supervisor')) {
+    return redirect()->route('incidencias.dashboard');
+}
+
+if ($user->hasRole('tecnico') || $user->hasRole('soporte')) {
+    return redirect()->route('dashboard');
+}
+
+return redirect()->intended(route('dashboard'));
         }
 
         return back()->withErrors([
