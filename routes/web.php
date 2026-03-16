@@ -3,6 +3,9 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\Auth\AuthController;
+use App\Http\Controllers\IncidenciaController;
+use App\Http\Controllers\LocalController;
+use App\Http\Controllers\SlaClienteController;
 
 // Ruta raíz → redirige al login
 Route::get('/', function () {
@@ -74,13 +77,15 @@ Route::middleware('role:admin')->group(function () {
     Route::get('/hardware/recursos/{recurso}/descargar', [App\Http\Controllers\HardwareRecursoController::class, 'descargar'])
         ->name('hardware.recursos.descargar');
 
-    // Solo admin
-    Route::middleware('role:admin')->group(function () {
+    // Métricas — admin y soporte
+Route::get('/admin-dashboard', [App\Http\Controllers\AdminDashboardController::class, 'index'])
+    ->name('admin.dashboard')
+    ->middleware('role:admin|soporte');
 
-        Route::get('/admin-dashboard', [App\Http\Controllers\AdminDashboardController::class, 'index'])
-            ->name('admin.dashboard');
+// Solo admin
+Route::middleware('role:admin')->group(function () {
 
-        Route::resource('usuarios', App\Http\Controllers\UsuarioController::class);
+    Route::resource('usuarios', App\Http\Controllers\UsuarioController::class);
 
         // Hardware — gestión
         Route::post('/hardware/tipos', [App\Http\Controllers\HardwareController::class, 'storeTipo'])
@@ -104,4 +109,59 @@ Route::middleware('role:admin')->group(function () {
         Route::put('/hardware/recursos/{recurso}', [App\Http\Controllers\HardwareRecursoController::class, 'update'])
             ->name('hardware.recursos.update');
     });
+    // Mantención
+    Route::middleware('role:admin|tecnico')->group(function () {
+        Route::get('/mantencion', [App\Http\Controllers\MantencionController::class, 'index'])
+            ->name('mantencion.index');
+        Route::get('/mantencion/create', [App\Http\Controllers\MantencionController::class, 'create'])
+            ->name('mantencion.create');
+        Route::post('/mantencion', [App\Http\Controllers\MantencionController::class, 'store'])
+            ->name('mantencion.store');
+        Route::get('/mantencion/{mantencion}', [App\Http\Controllers\MantencionController::class, 'show'])
+            ->name('mantencion.show');
+        Route::get('/mantencion/{mantencion}/pdf', [App\Http\Controllers\MantencionController::class, 'pdf'])
+            ->name('mantencion.pdf');
+    });
+
+    // LOCALES (AJAX)
+Route::middleware('auth')->group(function () {
+    Route::get('/locales/por-cliente/{cliente}', [LocalController::class, 'porCliente']);
+    Route::post('/locales', [LocalController::class, 'store'])->name('locales.store');
+});
+
+// INCIDENCIAS
+Route::middleware(['auth', 'role:admin|supervisor|agente'])->group(function () {
+    // Primero las rutas sin parámetro
+    Route::get('/incidencias', [IncidenciaController::class, 'index'])->name('incidencias.index');
+    Route::get('/incidencias/create', [IncidenciaController::class, 'create'])->name('incidencias.create');
+    Route::get('/incidencias/dashboard', [IncidenciaController::class, 'dashboard'])->name('incidencias.dashboard');
+    Route::get('/incidencias/reportes', [IncidenciaController::class, 'reportes'])->name('incidencias.reportes');
+    Route::get('/incidencias/exportar-excel', [IncidenciaController::class, 'exportarExcel'])->name('incidencias.excel');
+    Route::get('/incidencias/exportar-pdf', [IncidenciaController::class, 'exportarPdf'])->name('incidencias.pdf');
+    Route::post('/incidencias', [IncidenciaController::class, 'store'])->name('incidencias.store');
+    
+    // Después las rutas con parámetro
+    Route::get('/incidencias/{incidencia}', [IncidenciaController::class, 'show'])->name('incidencias.show');
+    Route::patch('/incidencias/{incidencia}/asignar', [IncidenciaController::class, 'asignar'])->name('incidencias.asignar');
+});
+
+Route::middleware(['auth', 'role:admin|tecnico'])->group(function () {
+    Route::get('/incidencias/{incidencia}/cierre', [IncidenciaController::class, 'formCierre'])->name('incidencias.cierre');
+    Route::post('/incidencias/{incidencia}/cierre', [IncidenciaController::class, 'guardarCierre'])->name('incidencias.cierre.guardar');
+});
+
+// CIERRE TÉCNICO
+Route::middleware(['auth', 'role:admin|tecnico'])->group(function () {
+    Route::get('/incidencias/{incidencia}/cierre', [IncidenciaController::class, 'formCierre'])->name('incidencias.cierre');
+    Route::post('/incidencias/{incidencia}/cierre', [IncidenciaController::class, 'guardarCierre'])->name('incidencias.cierre.guardar');
+});
+
+//CREA INCIDENCIAS
+Route::get('/incidencias/sla/{cliente}/{prioridad}', function($clienteId, $prioridad) {
+    return response()->json(
+        \App\Models\SlaCliente::where('cliente_id', $clienteId)
+            ->where('prioridad', $prioridad)
+            ->first(['horas_respuesta','horas_resolucion'])
+    );
+})->middleware('auth');
 });

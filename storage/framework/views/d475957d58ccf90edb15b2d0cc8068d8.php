@@ -39,67 +39,139 @@
         </div>
 
         
-        <nav class="flex-1 px-3 py-4 overflow-y-auto">
-            <div class="text-xs font-mono text-gray-500 uppercase tracking-widest px-2 mb-2">
-                Principal
-            </div>
+<nav class="flex-1 px-3 py-4 overflow-y-auto">
 
-            <a href="<?php echo e(route('dashboard')); ?>"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
-                      <?php echo e(request()->routeIs('dashboard') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white'); ?>">
-                <span class="text-base w-5 text-center">🏠</span>
-                DASHBOARD
-            </a>
+<?php $user = auth()->user(); ?>
 
-            <a href="<?php echo e(route('clientes.index')); ?>"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
-                      <?php echo e(request()->routeIs('clientes.*') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white'); ?>">
-                <span class="text-base w-5 text-center">🏢</span>
-                CLIENTES
-                <span class="ml-auto bg-red-600 text-white text-xs font-mono px-2 py-0.5 rounded-full">
-                    <?php echo e($totalClientes ?? 0); ?>
 
-                </span>
-            </a>
 
-            <a href="<?php echo e(route('herramientas.index')); ?>"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
-                      <?php echo e(request()->routeIs('herramientas.*') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white'); ?>">
-                <span class="text-base w-5 text-center">🔧</span>
-                HERRAMIENTAS
-            </a>
 
-            <a href="<?php echo e(route('hardware.index')); ?>"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
-                      <?php echo e(request()->routeIs('hardware.*') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white'); ?>">
-                <span class="text-base w-5 text-center">🖥️</span>
-                HARDWARE
-            </a>
 
-            <div class="text-xs font-mono text-gray-500 uppercase tracking-widest px-2 mb-2 mt-5">
-                Sistema
-            </div>
+<?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($user->hasRole('admin') || $user->hasRole('tecnico')): ?>
+<div class="text-xs font-mono text-gray-500 uppercase tracking-widest px-2 mb-2">
+    Base de Conocimiento
+</div>
 
-            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->hasRole('admin')): ?>
-            <a href="<?php echo e(route('admin.dashboard')); ?>"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
-                      <?php echo e(request()->routeIs('admin.dashboard') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white'); ?>">
-                <span class="text-base w-5 text-center">📊</span>
-                METRICAS
-            </a>
-            <a href="<?php echo e(route('usuarios.index')); ?>"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
-                      <?php echo e(request()->routeIs('usuarios.*') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white'); ?>">
-                <span class="text-base w-5 text-center">👥</span>
-                USUARIOS
-            </a>
-            <a href="/admin"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors">
-                <span class="text-base w-5 text-center">🛡️</span>
-                PANEL ADMIN
-            </a>
-            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-        </nav>
+<a href="<?php echo e(route('dashboard')); ?>"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          <?php echo e(request()->routeIs('dashboard') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white'); ?>">
+    <span class="text-base w-5 text-center">🏠</span> DASHBOARD
+</a>
+
+<a href="<?php echo e(route('clientes.index')); ?>"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          <?php echo e(request()->routeIs('clientes.*') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white'); ?>">
+    <span class="text-base w-5 text-center">🏢</span> CLIENTES
+    <span class="ml-auto bg-red-600 text-white text-xs font-mono px-2 py-0.5 rounded-full"><?php echo e($totalClientes ?? 0); ?></span>
+</a>
+
+<a href="<?php echo e(route('herramientas.index')); ?>"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          <?php echo e(request()->routeIs('herramientas.*') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white'); ?>">
+    <span class="text-base w-5 text-center">🔧</span> HERRAMIENTAS
+</a>
+
+<a href="<?php echo e(route('hardware.index')); ?>"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          <?php echo e(request()->routeIs('hardware.*') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white'); ?>">
+    <span class="text-base w-5 text-center">🖥️</span> HARDWARE
+</a>
+<?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+
+
+
+
+<?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($user->hasRole('admin') || $user->hasRole('tecnico')): ?>
+<div class="text-xs font-mono text-gray-500 uppercase tracking-widest px-2 mb-2 mt-5">
+    Sistemas
+</div>
+
+<a href="<?php echo e(route('mantencion.index')); ?>"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          <?php echo e(request()->routeIs('mantencion.index') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white'); ?>">
+    <span class="text-base w-5 text-center">📁</span>
+    <?php echo e($user->hasRole('admin') ? 'ÓRDENES' : 'MIS ÓRDENES'); ?>
+
+</a>
+
+<a href="<?php echo e(route('mantencion.create')); ?>"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          <?php echo e(request()->routeIs('mantencion.create') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white'); ?>">
+    <span class="text-base w-5 text-center">✅</span> CHECKLIST MANTENCIÓN
+</a>
+
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 select-none cursor-default">
+    <span class="text-base w-5 text-center opacity-30">📋</span>
+    <span class="text-gray-600 opacity-50">CHECKLIST ROLLOUT</span>
+    <span class="ml-auto text-xs font-mono bg-gray-800 text-gray-600 px-2 py-0.5 rounded-full">Pronto</span>
+</div>
+<?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+
+
+
+
+<?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($user->hasRole('admin') || $user->hasRole('supervisor') || $user->hasRole('agente')): ?>
+<div class="text-xs font-mono text-gray-500 uppercase tracking-widest px-2 mb-2 mt-5">
+    Mesa de Ayuda
+</div>
+
+<a href="<?php echo e(route('incidencias.dashboard')); ?>"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          <?php echo e(request()->routeIs('incidencias.dashboard') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white'); ?>">
+    <span class="text-base w-5 text-center">📊</span> DASHBOARD
+</a>
+
+<a href="<?php echo e(route('incidencias.create')); ?>"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          <?php echo e(request()->routeIs('incidencias.create') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white'); ?>">
+    <span class="text-base w-5 text-center">🎫</span> NUEVA INCIDENCIA
+</a>
+
+<a href="<?php echo e(route('incidencias.index')); ?>"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          <?php echo e(request()->routeIs('incidencias.index') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white'); ?>">
+    <span class="text-base w-5 text-center">🗂️</span> MIS TICKETS
+</a>
+
+<a href="<?php echo e(route('incidencias.reportes')); ?>"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          <?php echo e(request()->routeIs('incidencias.reportes') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white'); ?>">
+    <span class="text-base w-5 text-center">📈</span> REPORTES
+</a>
+<?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+
+
+
+
+<?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($user->hasRole('admin') || $user->hasRole('soporte')): ?>
+<div class="text-xs font-mono text-gray-500 uppercase tracking-widest px-2 mb-2 mt-5">
+    Administración
+</div>
+
+<a href="<?php echo e(route('admin.dashboard')); ?>"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          <?php echo e(request()->routeIs('admin.dashboard') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white'); ?>">
+    <span class="text-base w-5 text-center">📉</span> MÉTRICAS
+</a>
+<?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+<?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($user->hasRole('admin')): ?>
+<a href="<?php echo e(route('usuarios.index')); ?>"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          <?php echo e(request()->routeIs('usuarios.*') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white'); ?>">
+    <span class="text-base w-5 text-center">👥</span> USUARIOS
+</a>
+
+<a href="/admin"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors">
+    <span class="text-base w-5 text-center">🛡️</span> PANEL ADMIN
+</a>
+<?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+</nav>
 
         
         <div class="px-4 py-3 border-t border-gray-700 flex items-center gap-3">
@@ -224,6 +296,12 @@
             <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
             <?php echo $__env->yieldContent('content'); ?>
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(session('success')): ?>
+    <div class="mb-4 bg-green-50 border border-green-200 text-green-800 rounded-lg px-4 py-3 text-sm flex items-center gap-2">
+        ✅ <?php echo e(session('success')); ?>
+
+    </div>
+<?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
         </main>
     </div>
 

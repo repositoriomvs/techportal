@@ -49,7 +49,7 @@
     <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
         <div class="px-5 py-4 border-b border-gray-100">
             <h2 class="font-bold text-gray-900">📖 Últimas visitas</h2>
-            <p class="text-xs text-gray-400 font-mono mt-0.5">Continuá donde lo dejaste</p>
+            <p class="text-xs text-gray-400 font-mono mt-0.5">Continua tu última visita</p>
         </div>
         @if($ultimasVisitas->isEmpty())
             <div class="p-8 text-center">

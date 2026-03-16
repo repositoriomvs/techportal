@@ -39,7 +39,10 @@
                         @foreach($roles as $role)
                         <option value="{{ $role->name }}"
                             {{ $usuario->hasRole($role->name) ? 'selected' : '' }}>
-                            {{ $role->name === 'admin' ? '🛡️ Administrador' : '🔧 Técnico' }}
+                           @php
+    $roleLabels = ['admin' => '🛡️ Administrador', 'tecnico' => '🔧 Técnico', 'soporte' => '🎧 Soporte'];
+@endphp
+{{ $roleLabels[$role->name] ?? ucfirst($role->name) }}
                         </option>
                         @endforeach
                     </select>

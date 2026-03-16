@@ -44,12 +44,19 @@
                     <span class="text-sm text-gray-500 font-mono">{{ $usuario->email }}</span>
                 </td>
                 <td class="px-5 py-3">
-                    @foreach($usuario->roles as $role)
-                        <span class="text-xs font-mono font-bold px-2 py-1 rounded
-                            {{ $role->name === 'admin' ? 'bg-red-50 text-red-600' : 'bg-blue-50 text-blue-600' }}">
-                            {{ $role->name === 'admin' ? '🛡️ Admin' : '🔧 Técnico' }}
-                        </span>
-                    @endforeach
+@foreach($usuario->roles as $role)
+    @php
+        $roleConfig = [
+            'admin'   => ['bg-red-50 text-red-600',    '🛡️ Admin'],
+            'tecnico' => ['bg-blue-50 text-blue-600',   '🔧 Técnico'],
+            'soporte' => ['bg-purple-50 text-purple-600','🎧 Soporte'],
+        ];
+        $cfg = $roleConfig[$role->name] ?? ['bg-gray-50 text-gray-600', $role->name];
+    @endphp
+    <span class="text-xs font-mono font-bold px-2 py-1 rounded {{ $cfg[0] }}">
+        {{ $cfg[1] }}
+    </span>
+@endforeach
                 </td>
                 <td class="px-5 py-3 hidden md:table-cell">
                     <span class="text-xs text-gray-400 font-mono">{{ $usuario->created_at ? $usuario->created_at->format('d/m/Y') : '-' }}</span>

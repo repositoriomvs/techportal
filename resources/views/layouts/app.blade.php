@@ -39,66 +39,138 @@
         </div>
 
         {{-- Navegación --}}
-        <nav class="flex-1 px-3 py-4 overflow-y-auto">
-            <div class="text-xs font-mono text-gray-500 uppercase tracking-widest px-2 mb-2">
-                Principal
-            </div>
+<nav class="flex-1 px-3 py-4 overflow-y-auto">
 
-            <a href="{{ route('dashboard') }}"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
-                      {{ request()->routeIs('dashboard') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-                <span class="text-base w-5 text-center">🏠</span>
-                DASHBOARD
-            </a>
+@php $user = auth()->user(); @endphp
 
-            <a href="{{ route('clientes.index') }}"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
-                      {{ request()->routeIs('clientes.*') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-                <span class="text-base w-5 text-center">🏢</span>
-                CLIENTES
-                <span class="ml-auto bg-red-600 text-white text-xs font-mono px-2 py-0.5 rounded-full">
-                    {{ $totalClientes ?? 0 }}
-                </span>
-            </a>
+{{-- ══════════════════════════════════════ --}}
+{{-- BASE DE CONOCIMIENTO                  --}}
+{{-- Admin y Técnico                       --}}
+{{-- ══════════════════════════════════════ --}}
+@if($user->hasRole('admin') || $user->hasRole('tecnico'))
+<div class="text-xs font-mono text-gray-500 uppercase tracking-widest px-2 mb-2">
+    Base de Conocimiento
+</div>
 
-            <a href="{{ route('herramientas.index') }}"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
-                      {{ request()->routeIs('herramientas.*') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-                <span class="text-base w-5 text-center">🔧</span>
-                HERRAMIENTAS
-            </a>
+<a href="{{ route('dashboard') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          {{ request()->routeIs('dashboard') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+    <span class="text-base w-5 text-center">🏠</span> DASHBOARD
+</a>
 
-            <a href="{{ route('hardware.index') }}"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
-                      {{ request()->routeIs('hardware.*') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-                <span class="text-base w-5 text-center">🖥️</span>
-                HARDWARE
-            </a>
+<a href="{{ route('clientes.index') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          {{ request()->routeIs('clientes.*') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+    <span class="text-base w-5 text-center">🏢</span> CLIENTES
+    <span class="ml-auto bg-red-600 text-white text-xs font-mono px-2 py-0.5 rounded-full">{{ $totalClientes ?? 0 }}</span>
+</a>
 
-            <div class="text-xs font-mono text-gray-500 uppercase tracking-widest px-2 mb-2 mt-5">
-                Sistema
-            </div>
+<a href="{{ route('herramientas.index') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          {{ request()->routeIs('herramientas.*') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+    <span class="text-base w-5 text-center">🔧</span> HERRAMIENTAS
+</a>
 
-            @if(auth()->user()->hasRole('admin'))
-            <a href="{{ route('admin.dashboard') }}"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
-                      {{ request()->routeIs('admin.dashboard') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-                <span class="text-base w-5 text-center">📊</span>
-                METRICAS
-            </a>
-            <a href="{{ route('usuarios.index') }}"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
-                      {{ request()->routeIs('usuarios.*') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
-                <span class="text-base w-5 text-center">👥</span>
-                USUARIOS
-            </a>
-            <a href="/admin"
-               class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors">
-                <span class="text-base w-5 text-center">🛡️</span>
-                PANEL ADMIN
-            </a>
-            @endif
-        </nav>
+<a href="{{ route('hardware.index') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          {{ request()->routeIs('hardware.*') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+    <span class="text-base w-5 text-center">🖥️</span> HARDWARE
+</a>
+@endif
+
+{{-- ══════════════════════════════════════ --}}
+{{-- SISTEMAS — MANTENCIÓN                 --}}
+{{-- Admin y Técnico                       --}}
+{{-- ══════════════════════════════════════ --}}
+@if($user->hasRole('admin') || $user->hasRole('tecnico'))
+<div class="text-xs font-mono text-gray-500 uppercase tracking-widest px-2 mb-2 mt-5">
+    Sistemas
+</div>
+
+<a href="{{ route('mantencion.index') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          {{ request()->routeIs('mantencion.index') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+    <span class="text-base w-5 text-center">📁</span>
+    {{ $user->hasRole('admin') ? 'ÓRDENES' : 'MIS ÓRDENES' }}
+</a>
+
+<a href="{{ route('mantencion.create') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          {{ request()->routeIs('mantencion.create') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+    <span class="text-base w-5 text-center">✅</span> CHECKLIST MANTENCIÓN
+</a>
+
+<div class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 select-none cursor-default">
+    <span class="text-base w-5 text-center opacity-30">📋</span>
+    <span class="text-gray-600 opacity-50">CHECKLIST ROLLOUT</span>
+    <span class="ml-auto text-xs font-mono bg-gray-800 text-gray-600 px-2 py-0.5 rounded-full">Pronto</span>
+</div>
+@endif
+
+{{-- ══════════════════════════════════════ --}}
+{{-- INCIDENCIAS                           --}}
+{{-- Admin, Supervisor, Agente             --}}
+{{-- ══════════════════════════════════════ --}}
+@if($user->hasRole('admin') || $user->hasRole('supervisor') || $user->hasRole('agente'))
+<div class="text-xs font-mono text-gray-500 uppercase tracking-widest px-2 mb-2 mt-5">
+    Mesa de Ayuda
+</div>
+
+<a href="{{ route('incidencias.dashboard') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          {{ request()->routeIs('incidencias.dashboard') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+    <span class="text-base w-5 text-center">📊</span> DASHBOARD
+</a>
+
+<a href="{{ route('incidencias.create') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          {{ request()->routeIs('incidencias.create') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+    <span class="text-base w-5 text-center">🎫</span> NUEVA INCIDENCIA
+</a>
+
+<a href="{{ route('incidencias.index') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          {{ request()->routeIs('incidencias.index') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+    <span class="text-base w-5 text-center">🗂️</span> MIS TICKETS
+</a>
+
+<a href="{{ route('incidencias.reportes') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          {{ request()->routeIs('incidencias.reportes') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+    <span class="text-base w-5 text-center">📈</span> REPORTES
+</a>
+@endif
+
+{{-- ══════════════════════════════════════ --}}
+{{-- ADMINISTRACIÓN                        --}}
+{{-- Solo Admin y Soporte                  --}}
+{{-- ══════════════════════════════════════ --}}
+@if($user->hasRole('admin') || $user->hasRole('soporte'))
+<div class="text-xs font-mono text-gray-500 uppercase tracking-widest px-2 mb-2 mt-5">
+    Administración
+</div>
+
+<a href="{{ route('admin.dashboard') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          {{ request()->routeIs('admin.dashboard') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+    <span class="text-base w-5 text-center">📉</span> MÉTRICAS
+</a>
+@endif
+
+@if($user->hasRole('admin'))
+<a href="{{ route('usuarios.index') }}"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 transition-colors
+          {{ request()->routeIs('usuarios.*') ? 'bg-red-600 text-white font-semibold' : 'text-gray-300 hover:bg-gray-800 hover:text-white' }}">
+    <span class="text-base w-5 text-center">👥</span> USUARIOS
+</a>
+
+<a href="/admin"
+   class="flex items-center gap-3 px-3 py-2 rounded-lg text-sm mb-1 text-gray-300 hover:bg-gray-800 hover:text-white transition-colors">
+    <span class="text-base w-5 text-center">🛡️</span> PANEL ADMIN
+</a>
+@endif
+
+</nav>
 
         {{-- Usuario --}}
         <div class="px-4 py-3 border-t border-gray-700 flex items-center gap-3">
@@ -220,6 +292,11 @@
             @endif
 
             @yield('content')
+            @if(session('success'))
+    <div class="mb-4 bg-green-50 border border-green-200 text-green-800 rounded-lg px-4 py-3 text-sm flex items-center gap-2">
+        ✅ {{ session('success') }}
+    </div>
+@endif
         </main>
     </div>
 

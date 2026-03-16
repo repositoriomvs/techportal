@@ -75,11 +75,11 @@
         </div>
 
         
-        <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
+        <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2">
             <a href="<?php echo e(route('clientes.show', $cliente)); ?>"
-               class="text-sm text-red-600 font-semibold hover:text-red-700">
-                Ver repositorio →
-            </a>
+   class="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
+    Ver repositorio →
+</a>
             <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if (\Illuminate\Support\Facades\Blade::check('role', 'admin')): ?>
             <div class="flex gap-2">
                 <a href="<?php echo e(route('clientes.edit', $cliente)); ?>"
