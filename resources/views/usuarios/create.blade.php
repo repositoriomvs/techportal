@@ -48,7 +48,14 @@
                         @foreach($roles as $role)
                         <option value="{{ $role->name }}" {{ old('role') === $role->name ? 'selected' : '' }}>
                            @php
-    $roleLabels = ['admin' => '🛡️ Administrador', 'tecnico' => '🔧 Técnico', 'soporte' => '🎧 Soporte'];
+    $roleLabels = [
+    'superadmin' => '👑 Superadmin',
+    'admin'      => '🛡️ Administrador',
+    'tecnico'    => '🔧 Técnico',
+    'soporte'    => '🎧 Soporte',
+    'supervisor' => '📋 Supervisor MDA',
+    'agente'     => '🎫 Agente MDA',
+];
 @endphp
 {{ $roleLabels[$role->name] ?? ucfirst($role->name) }}
                         </option>
