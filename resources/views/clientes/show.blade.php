@@ -52,68 +52,47 @@
         @endrole
     </div>
 
-    {{-- ══════════════════════════════════════ --}}
-    {{-- BLOQUE SLA                            --}}
-    {{-- ══════════════════════════════════════ --}}
+    {{-- BLOQUE SLA --}}
     <div class="mt-4 pt-4 border-t border-gray-100">
-        @if($slas->isNotEmpty())
+        @if($cliente->tiene_sla)
             <div class="flex items-center gap-2 mb-3">
                 <span class="inline-flex items-center gap-1.5 bg-green-50 text-green-700 border border-green-200 text-xs font-semibold px-3 py-1 rounded-full">
                     ✓ Cuenta con SLA
                 </span>
             </div>
+            <div class="grid grid-cols-3 gap-3">
 
-            {{-- Tabla SLA --}}
-            <div class="border border-gray-200 rounded-lg overflow-hidden">
-                {{-- Header --}}
-                <div class="grid grid-cols-4 bg-gray-50 border-b border-gray-200">
-                    <div class="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Prioridad</div>
-                    <div class="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Tiempo respuesta</div>
-                    <div class="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Tiempo resolución</div>
-                    <div class="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Cambio de equipo</div>
+                <div class="bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 text-center">
+                    <div class="text-xs font-mono text-gray-400 uppercase tracking-wider mb-1">Tiempo respuesta</div>
+                    <div class="text-2xl font-bold text-gray-900">
+                        {{ $cliente->sla_horas_respuesta > 0 ? $cliente->sla_horas_respuesta : '—' }}
+                    </div>
+                    <div class="text-xs text-gray-400 mt-0.5">
+                        {{ $cliente->sla_horas_respuesta > 0 ? 'hora' . ($cliente->sla_horas_respuesta !== 1 ? 's' : '') : 'sin compromiso' }}
+                    </div>
                 </div>
 
-                @foreach([
-                    'alta'  => ['label' => 'Alta',  'color' => 'bg-red-500'],
-                    'media' => ['label' => 'Media', 'color' => 'bg-amber-500'],
-                    'baja'  => ['label' => 'Baja',  'color' => 'bg-green-500'],
-                ] as $prioridad => $info)
-                @if(isset($slas[$prioridad]))
-                @php $sla = $slas[$prioridad]; @endphp
-                <div class="grid grid-cols-4 border-b border-gray-100 last:border-b-0 items-center {{ $loop->even ? 'bg-gray-50/50' : '' }}">
-                    <div class="px-4 py-3 flex items-center gap-2">
-                        <span class="inline-block w-2 h-2 rounded-full {{ $info['color'] }}"></span>
-                        <span class="text-sm font-semibold text-gray-700">{{ $info['label'] }}</span>
+                <div class="bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 text-center">
+                    <div class="text-xs font-mono text-gray-400 uppercase tracking-wider mb-1">Tiempo resolución</div>
+                    <div class="text-2xl font-bold text-gray-900">
+                        {{ $cliente->sla_horas_resolucion > 0 ? $cliente->sla_horas_resolucion : '—' }}
                     </div>
-                    <div class="px-4 py-3 text-center">
-                        @if($sla->horas_respuesta > 0)
-                            <span class="text-sm font-bold text-gray-900">{{ $sla->horas_respuesta }}</span>
-                            <span class="text-xs text-gray-400 ml-1">hr{{ $sla->horas_respuesta !== 1 ? 's' : '' }}</span>
-                        @else
-                            <span class="text-xs text-gray-400">—</span>
-                        @endif
-                    </div>
-                    <div class="px-4 py-3 text-center">
-                        @if($sla->horas_resolucion > 0)
-                            <span class="text-sm font-bold text-gray-900">{{ $sla->horas_resolucion }}</span>
-                            <span class="text-xs text-gray-400 ml-1">hr{{ $sla->horas_resolucion !== 1 ? 's' : '' }}</span>
-                        @else
-                            <span class="text-xs text-gray-400">—</span>
-                        @endif
-                    </div>
-                    <div class="px-4 py-3 text-center">
-                        @if($sla->horas_cambio_equipo > 0)
-                            <span class="text-sm font-bold text-gray-900">{{ $sla->horas_cambio_equipo }}</span>
-                            <span class="text-xs text-gray-400 ml-1">hr{{ $sla->horas_cambio_equipo !== 1 ? 's' : '' }}</span>
-                        @else
-                            <span class="text-xs text-gray-400">—</span>
-                        @endif
+                    <div class="text-xs text-gray-400 mt-0.5">
+                        {{ $cliente->sla_horas_resolucion > 0 ? 'hora' . ($cliente->sla_horas_resolucion !== 1 ? 's' : '') : 'sin compromiso' }}
                     </div>
                 </div>
-                @endif
-                @endforeach
+
+                <div class="bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 text-center">
+                    <div class="text-xs font-mono text-gray-400 uppercase tracking-wider mb-1">Cambio de equipo</div>
+                    <div class="text-2xl font-bold text-gray-900">
+                        {{ $cliente->sla_horas_cambio_equipo > 0 ? $cliente->sla_horas_cambio_equipo : '—' }}
+                    </div>
+                    <div class="text-xs text-gray-400 mt-0.5">
+                        {{ $cliente->sla_horas_cambio_equipo > 0 ? 'hora' . ($cliente->sla_horas_cambio_equipo !== 1 ? 's' : '') : 'sin compromiso' }}
+                    </div>
+                </div>
+
             </div>
-
         @else
             <span class="inline-flex items-center gap-1.5 bg-gray-50 text-gray-400 border border-gray-200 text-xs font-semibold px-3 py-1 rounded-full">
                 — Sin SLA definido
