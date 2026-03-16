@@ -1,11 +1,189 @@
+@extends('layouts.app')
+
+@section('title', 'Nueva Orden de Mantención')
+@section('page-title', 'Nueva Orden de Mantención')
+@section('page-subtitle', 'Mantención preventiva · Todos los campos son obligatorios')
+
+@section('topbar-actions')
+    <a href="{{ route('mantencion.index') }}"
+       class="text-sm text-gray-500 hover:text-gray-700 border border-gray-200 px-4 py-2 rounded-lg transition-colors">
+        ← Volver
+    </a>
+@endsection
+
+@section('content')
+
+<form id="formChecklist" method="POST" action="{{ route('mantencion.store') }}" enctype="multipart/form-data">
+@csrf
+
+{{-- DATOS DEL SERVICIO --}}
+<div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-5">
+    <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+        <span>📋</span>
+        <span class="font-bold text-gray-900 text-sm">1. Datos del Servicio</span>
+    </div>
+    <div class="p-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Fecha <span class="text-red-500">*</span></label>
+            <input type="text" name="fecha" id="fechaHoy" readonly
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50 text-gray-500 cursor-not-allowed select-none focus:outline-none">
+        </div>
+        <div>
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Hora inicio <span class="text-red-500">*</span></label>
+            <input type="time" name="hora_inicio" required
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
+        </div>
+        <div>
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Hora término</label>
+            <input type="text" readonly
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50 text-gray-400 cursor-not-allowed select-none focus:outline-none"
+                placeholder="Se registra al enviar">
+        </div>
+    </div>
+</div>
+
+{{-- DATOS DEL CLIENTE --}}
+<div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-5">
+    <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+        <span>🏢</span>
+        <span class="font-bold text-gray-900 text-sm">2. Datos del Cliente</span>
+    </div>
+    <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="sm:col-span-2">
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Cliente <span class="text-red-500">*</span></label>
+            <select name="cliente_id" required
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
+                <option value="">— Seleccionar cliente —</option>
+                @foreach($clientes as $cliente)
+                    <option value="{{ $cliente->id }}">{{ $cliente->nombre }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Código local <span class="text-red-500">*</span></label>
+            <input type="text" name="codigo_local" required placeholder="Ej: LOC-001"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
+        </div>
+        <div>
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Ciudad <span class="text-red-500">*</span></label>
+            <input type="text" name="ciudad" required placeholder="Ej: Santiago"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
+        </div>
+        <div class="sm:col-span-2">
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Dirección <span class="text-red-500">*</span></label>
+            <input type="text" name="direccion" required placeholder="Ej: Av. Providencia 1234"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
+        </div>
+    </div>
+</div>
+
+{{-- EQUIPOS --}}
+<div id="equiposContainer"></div>
+
+<button type="button" onclick="agregarEquipo()"
+    class="w-full mb-5 border-2 border-dashed border-gray-300 hover:border-red-400 text-gray-400 hover:text-red-500 rounded-xl py-4 text-sm font-semibold transition-all flex items-center justify-center gap-2">
+    <span class="text-xl">＋</span> Agregar otro equipo
+</button>
+
+{{-- FIRMA --}}
+<div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-5">
+    <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+        <span>✍️</span>
+        <span class="font-bold text-gray-900 text-sm">Recepción del Servicio</span>
+    </div>
+    <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Nombre receptor <span class="text-red-500">*</span></label>
+            <input type="text" name="firma_nombre" required placeholder="Nombre completo"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
+        </div>
+        <div>
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Cargo <span class="text-red-500">*</span></label>
+            <input type="text" name="firma_cargo" required placeholder="Cargo del receptor"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
+        </div>
+        <div class="sm:col-span-2">
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Firma <span class="text-red-500">*</span></label>
+            <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                <div class="border-2 border-dashed border-gray-300 rounded-lg overflow-hidden bg-white mb-2" style="touch-action:none; height:100px;">
+                    <canvas id="firmaCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-400">Dibuja la firma con el dedo o mouse</span>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="limpiarFirma()"
+                            class="text-xs text-gray-400 hover:text-red-500 border border-gray-200 px-3 py-1 rounded transition-colors">
+                            🗑 Limpiar
+                        </button>
+                        <button type="button" onclick="abrirModalFirma()"
+                            class="text-xs text-gray-600 hover:text-gray-800 border border-gray-300 px-3 py-1 rounded transition-colors">
+                            ⛶ Ampliar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" name="firma_imagen" id="firmaData">
+        </div>
+    </div>
+</div>
+
+{{-- ACCIONES --}}
+<div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+    <div class="p-5 flex flex-col sm:flex-row gap-3">
+        <button type="button" onclick="enviarFormulario()"
+            class="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg text-sm transition-colors shadow-sm">
+            📤 Enviar Orden
+        </button>
+        <a href="{{ route('mantencion.index') }}"
+            class="flex-1 flex items-center justify-center gap-2 border border-gray-300 hover:border-gray-400 text-gray-600 font-semibold py-3 rounded-lg text-sm transition-colors">
+            Cancelar
+        </a>
+    </div>
+    <div class="px-5 pb-4 text-center">
+        <p class="text-xs text-gray-400 font-mono">Todos los campos marcados con <span class="text-red-500">*</span> son obligatorios · La hora de término se registra automáticamente al enviar</p>
+    </div>
+</div>
+
+</form>
+
+{{-- MODAL FIRMA AMPLIADA --}}
+<div id="modalFirma" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div class="font-bold text-gray-900">✍️ Firma del receptor</div>
+            <div class="flex gap-2">
+                <button type="button" onclick="limpiarFirmaModal()"
+                    class="text-sm text-gray-500 hover:text-red-500 border border-gray-200 px-3 py-1.5 rounded-lg transition-colors">
+                    🗑 Limpiar
+                </button>
+                <button type="button" onclick="guardarFirmaModal()"
+                    class="text-sm bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-1.5 rounded-lg transition-colors">
+                    ✓ Guardar firma
+                </button>
+            </div>
+        </div>
+        <div class="p-5">
+            <div class="border-2 border-dashed border-gray-300 rounded-xl overflow-hidden bg-gray-50" style="touch-action:none; height:220px;">
+                <canvas id="firmaModalCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+            </div>
+            <p class="text-xs text-gray-400 text-center mt-2">Dibuja la firma con el dedo o mouse</p>
+        </div>
+    </div>
+</div>
+
+{{-- TOAST --}}
+<div id="toast" class="fixed bottom-6 right-6 z-50 hidden">
+    <div id="toastInner" class="px-5 py-3 rounded-xl shadow-lg text-sm font-semibold flex items-center gap-2"></div>
+</div>
+
+@endsection
+
 @push('scripts')
 <script>
 // ═══════════════════════════════════════
-// CHECKLIST DATA (Con validación de objeto)
+// CHECKLIST DATA
 // ═══════════════════════════════════════
-// Forzamos a que si ITEMS viene vacío o como array, se trate como objeto para evitar errores
-let rawItems = @json($items);
-const ITEMS = (Array.isArray(rawItems) && rawItems.length === 0) ? {} : rawItems;
+const ITEMS = @json($items);
 
 const TIPOS = {
     impresora_sin_adf:   'IMPRESORA SIN ADF',
@@ -33,18 +211,16 @@ const COLOR_OPCIONES = {
 let equipoCount = 0;
 
 // ═══════════════════════════════════════
-// INICIALIZACIÓN
+// FECHA AUTOMÁTICA
 // ═══════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
-    // Fecha automática
     const hoy = new Date();
     const dia = String(hoy.getDate()).padStart(2,'0');
     const mes = String(hoy.getMonth()+1).padStart(2,'0');
     const anio = hoy.getFullYear();
-    const fechaInput = document.getElementById('fechaHoy');
-    if(fechaInput) fechaInput.value = `${dia}/${mes}/${anio}`;
+    document.getElementById('fechaHoy').value = `${dia}/${mes}/${anio}`;
 
-    // Agregar primer equipo
+    // Agregar primer equipo automáticamente
     agregarEquipo();
     initFirma();
 });
@@ -56,8 +232,6 @@ function agregarEquipo() {
     equipoCount++;
     const idx = equipoCount;
     const container = document.getElementById('equiposContainer');
-    if(!container) return;
-
     const div = document.createElement('div');
     div.id = `equipo-${idx}`;
     div.className = 'bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-5';
@@ -121,21 +295,24 @@ function agregarEquipo() {
             </div>
             <div class="grid grid-cols-3 gap-3">
                 <label class="cursor-pointer" id="btn-op-${idx}">
-                    <input type="radio" name="equipos[${idx}][estado_final]" value="operativo" class="sr-only peer" onchange="onEstadoChange(${idx})">
+                    <input type="radio" name="equipos[${idx}][estado_final]" value="operativo" class="sr-only peer"
+                        onchange="onEstadoChange(${idx})">
                     <div class="border-2 border-gray-200 rounded-xl p-3 text-center peer-checked:border-green-500 peer-checked:bg-green-50 hover:border-gray-300 transition-all">
                         <div class="text-xl mb-1">✅</div>
                         <div class="text-xs font-semibold text-gray-900">Operativo</div>
                     </div>
                 </label>
                 <label class="cursor-pointer" id="btn-obs-${idx}">
-                    <input type="radio" name="equipos[${idx}][estado_final]" value="operativo_con_observaciones" class="sr-only peer" onchange="onEstadoChange(${idx})">
+                    <input type="radio" name="equipos[${idx}][estado_final]" value="operativo_con_observaciones" class="sr-only peer"
+                        onchange="onEstadoChange(${idx})">
                     <div class="border-2 border-gray-200 rounded-xl p-3 text-center peer-checked:border-amber-500 peer-checked:bg-amber-50 hover:border-gray-300 transition-all">
                         <div class="text-xl mb-1">⚠️</div>
-                        <div class="text-xs font-semibold text-gray-900">Con obs.</div>
+                        <div class="text-xs font-semibold text-gray-900">Operativo c/obs.</div>
                     </div>
                 </label>
                 <label class="cursor-pointer" id="btn-def-${idx}">
-                    <input type="radio" name="equipos[${idx}][estado_final]" value="defectuoso" class="sr-only peer" onchange="onEstadoChange(${idx})">
+                    <input type="radio" name="equipos[${idx}][estado_final]" value="defectuoso" class="sr-only peer"
+                        onchange="onEstadoChange(${idx})">
                     <div class="border-2 border-gray-200 rounded-xl p-3 text-center peer-checked:border-red-500 peer-checked:bg-red-50 hover:border-gray-300 transition-all">
                         <div class="text-xl mb-1">❌</div>
                         <div class="text-xs font-semibold text-gray-900">Defectuoso</div>
@@ -146,14 +323,14 @@ function agregarEquipo() {
 
         <div class="px-5 pb-5 grid grid-cols-2 gap-4 border-t border-gray-100 pt-4">
             <div>
-                <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Foto equipo <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Foto del equipo <span class="text-red-500">*</span></label>
                 <input type="file" name="equipos[${idx}][foto_equipo]" accept="image/*" capture="environment" required
-                    class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-600">
+                    class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-600 hover:file:bg-red-100 transition-all">
             </div>
             <div>
-                <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Foto serie <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Foto número de serie <span class="text-red-500">*</span></label>
                 <input type="file" name="equipos[${idx}][foto_serie]" accept="image/*" capture="environment" required
-                    class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-600">
+                    class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-600 hover:file:bg-red-100 transition-all">
             </div>
         </div>`;
 
@@ -166,19 +343,11 @@ function eliminarEquipo(idx) {
 }
 
 // ═══════════════════════════════════════
-// CHECKLIST (Corregido con validación de ITEMS)
+// CHECKLIST
 // ═══════════════════════════════════════
 function cargarChecklist(idx) {
     const tipo = document.getElementById(`tipo-${idx}`).value;
-    const checkDiv = document.getElementById(`checklist-${idx}`);
-    
-    // Limpiar y ocultar si no hay tipo o ITEMS no tiene la llave
-    if (!tipo || !ITEMS[tipo]) {
-        checkDiv.innerHTML = '';
-        checkDiv.classList.add('hidden');
-        if(tipo && !ITEMS[tipo]) console.warn("No hay items cargados para el tipo: " + tipo);
-        return;
-    }
+    if (!tipo || !ITEMS[tipo]) return;
 
     const secciones = {};
     ITEMS[tipo].forEach(item => {
@@ -200,71 +369,85 @@ function cargarChecklist(idx) {
                     ${item.descripcion}
                     ${item.es_critico ? '<span class="text-xs font-mono bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full">Crítico</span>' : ''}
                 </div>
-                <div class="flex gap-2 flex-wrap">
+                <div class="flex gap-2 flex-wrap" id="opciones-${idx}-${item.id}">
                     ${opciones.map(op => `
                     <label class="cursor-pointer">
-                        <input type="radio" name="equipos[${idx}][checklist][${item.id}]" value="${op}" class="sr-only peer" required
-                            onchange="onRespuestaChange(${idx}, '${op}', ${item.es_critico}, '${item.descripcion.replace(/'/g, "\\'")}')">
+                        <input type="radio" name="equipos[${idx}][checklist][${item.id}]" value="${op}" class="sr-only peer"
+                            onchange="onRespuestaChange(${idx}, '${op}', ${item.es_critico ? 'true' : 'false'}, '${item.descripcion}')">
                         <span class="inline-block px-3 py-1.5 rounded-lg text-xs font-semibold border-2 border-gray-200 text-gray-400 ${COLOR_OPCIONES[op]} transition-all hover:border-gray-300">
                             ${LABEL_OPCIONES[op]}
                         </span>
                     </label>`).join('')}
                 </div>
+                <div id="alerta-item-${idx}-${item.id}" class="hidden mt-1.5 text-xs text-red-600 font-mono">⚠️ <span></span></div>
             </div>`;
         });
     });
 
+    const checkDiv = document.getElementById(`checklist-${idx}`);
     checkDiv.innerHTML = html;
     checkDiv.classList.remove('hidden');
 }
 
 // ═══════════════════════════════════════
-// LOGICA DE ESTADOS Y FIRMA (Igual a la original)
+// LÓGICA ESTADO
 // ═══════════════════════════════════════
 function onRespuestaChange(idx, valor, esCritico, nombre) {
-    if (valor === 'defectuoso') {
-        forzarDefectuoso(idx, nombre, esCritico);
-    } else {
+    if (valor !== 'defectuoso') {
         recalcularEstado(idx);
+        return;
     }
+
+    forzarDefectuoso(idx, nombre, esCritico);
 }
 
 function forzarDefectuoso(idx, nombre, esCritico) {
     const radio = document.querySelector(`input[name="equipos[${idx}][estado_final]"][value="defectuoso"]`);
     if (radio) radio.checked = true;
-    bloquearBtn(`btn-op-${idx}`, `"${nombre}" está Defectuoso.`);
-    bloquearBtn(`btn-obs-${idx}`, `"${nombre}" está Defectuoso.`);
+
+    bloquearBtn(`btn-op-${idx}`, `"${nombre}" está Defectuoso. No se puede seleccionar Operativo.`);
+    bloquearBtn(`btn-obs-${idx}`, `"${nombre}" está Defectuoso. No se puede seleccionar Operativo con observaciones.`);
+
     const alerta = document.getElementById(`alerta-estado-${idx}`);
-    document.getElementById(`alerta-msg-${idx}`).textContent = `Configurado como Defectuoso por ítems del checklist.`;
+    document.getElementById(`alerta-msg-${idx}`).textContent =
+        `Hay ítems marcados como Defectuoso. El estado final fue configurado automáticamente.`;
     alerta.classList.remove('hidden');
+
     actualizarBadge(idx);
 }
 
 function bloquearBtn(btnId, msg) {
     const label = document.getElementById(btnId);
     if (!label) return;
-    label.querySelector('div').classList.add('opacity-40');
+    label.querySelector('div').style.opacity = '0.4';
     label.querySelector('input').disabled = true;
+    label.onclick = (e) => { e.preventDefault(); mostrarToast(msg, 'error'); };
 }
 
 function desbloquearBtn(btnId) {
     const label = document.getElementById(btnId);
     if (!label) return;
-    label.querySelector('div').classList.remove('opacity-40');
+    label.querySelector('div').style.opacity = '1';
     label.querySelector('input').disabled = false;
+    label.onclick = null;
 }
 
 function recalcularEstado(idx) {
     const tipo = document.getElementById(`tipo-${idx}`)?.value;
     if (!tipo || !ITEMS[tipo]) return;
+
     let hayDefectuoso = false;
-    document.querySelectorAll(`input[name^="equipos[${idx}][checklist]"]:checked`).forEach(input => {
-        if(input.value === 'defectuoso') hayDefectuoso = true;
+    ITEMS[tipo].forEach(item => {
+        const checked = document.querySelector(`input[name="equipos[${idx}][checklist][${item.id}]"]:checked`);
+        if (checked?.value === 'defectuoso') hayDefectuoso = true;
     });
+
     if (!hayDefectuoso) {
         desbloquearBtn(`btn-op-${idx}`);
         desbloquearBtn(`btn-obs-${idx}`);
         document.getElementById(`alerta-estado-${idx}`).classList.add('hidden');
+        const radio = document.querySelector(`input[name="equipos[${idx}][estado_final]"][value="defectuoso"]`);
+        if (radio?.checked) radio.checked = false;
     }
     actualizarBadge(idx);
 }
@@ -273,59 +456,132 @@ function onEstadoChange(idx) { actualizarBadge(idx); }
 
 function actualizarBadge(idx) {
     const badge = document.getElementById(`badge-${idx}`);
+    if (!badge) return;
     const checked = document.querySelector(`input[name="equipos[${idx}][estado_final]"]:checked`);
-    if (!badge || !checked) return;
+    if (!checked) return;
     const labels = { operativo:'✅ Operativo', operativo_con_observaciones:'⚠️ Con obs.', defectuoso:'❌ Defectuoso' };
     const colors = { operativo:'bg-green-50 text-green-700', operativo_con_observaciones:'bg-amber-50 text-amber-700', defectuoso:'bg-red-50 text-red-700' };
     badge.textContent = labels[checked.value];
     badge.className = `ml-auto text-xs font-mono px-2 py-0.5 rounded-full ${colors[checked.value]}`;
 }
 
-// Lógica de Firma simplificada para estabilidad
-let firmaCtx;
+// ═══════════════════════════════════════
+// FIRMA
+// ═══════════════════════════════════════
+let firmaCtx, firmaDibujando = false, firmaLastX = 0, firmaLastY = 0;
+let firmaModalCtx, firmaModalDibujando = false, firmaModalLastX = 0, firmaModalLastY = 0;
+
 function initFirma() {
     const canvas = document.getElementById('firmaCanvas');
-    if(!canvas) return;
     canvas.width = canvas.offsetWidth;
-    canvas.height = 100;
+    canvas.height = canvas.offsetHeight || 100;
     firmaCtx = canvas.getContext('2d');
-    setupCanvas(canvas, firmaCtx);
+    setupCanvas(canvas, firmaCtx, (x,y) => { firmaLastX=x; firmaLastY=y; }, (x,y) => { drawLine(firmaCtx,firmaLastX,firmaLastY,x,y); firmaLastX=x; firmaLastY=y; });
 }
 
-function setupCanvas(canvas, ctx) {
-    let drawing = false;
-    let lastX = 0; let lastY = 0;
+function setupCanvas(canvas, ctx, onStart, onMove) {
     const getPos = (e) => {
         const rect = canvas.getBoundingClientRect();
-        return {
-            x: (e.clientX || e.touches[0].clientX) - rect.left,
-            y: (e.clientY || e.touches[0].clientY) - rect.top
-        };
+        const scaleX = canvas.width / rect.width;
+        const scaleY = canvas.height / rect.height;
+        if (e.touches) return { x:(e.touches[0].clientX-rect.left)*scaleX, y:(e.touches[0].clientY-rect.top)*scaleY };
+        return { x:(e.clientX-rect.left)*scaleX, y:(e.clientY-rect.top)*scaleY };
     };
-    const start = (e) => { drawing = true; const p = getPos(e); lastX = p.x; lastY = p.y; };
-    const move = (e) => {
-        if (!drawing) return;
-        const p = getPos(e);
-        ctx.beginPath(); ctx.moveTo(lastX, lastY); ctx.lineTo(p.x, p.y);
-        ctx.strokeStyle = '#000'; ctx.lineWidth = 2; ctx.stroke();
-        lastX = p.x; lastY = p.y;
-    };
-    canvas.addEventListener('mousedown', start); canvas.addEventListener('mousemove', move);
-    window.addEventListener('mouseup', () => drawing = false);
-    canvas.addEventListener('touchstart', (e) => { e.preventDefault(); start(e); });
-    canvas.addEventListener('touchmove', (e) => { e.preventDefault(); move(e); });
+    let drawing = false;
+    canvas.addEventListener('mousedown', e => { drawing=true; const p=getPos(e); onStart(p.x,p.y); });
+    canvas.addEventListener('mousemove', e => { if(!drawing) return; const p=getPos(e); onMove(p.x,p.y); });
+    canvas.addEventListener('mouseup', () => drawing=false);
+    canvas.addEventListener('mouseleave', () => drawing=false);
+    canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing=true; const p=getPos(e); onStart(p.x,p.y); }, {passive:false});
+    canvas.addEventListener('touchmove', e => { e.preventDefault(); if(!drawing) return; const p=getPos(e); onMove(p.x,p.y); }, {passive:false});
+    canvas.addEventListener('touchend', () => drawing=false);
+}
+
+function drawLine(ctx, x1, y1, x2, y2) {
+    ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
+    ctx.strokeStyle='#1f2937'; ctx.lineWidth=2; ctx.lineCap='round'; ctx.stroke();
 }
 
 function limpiarFirma() {
     const canvas = document.getElementById('firmaCanvas');
-    firmaCtx.clearRect(0, 0, canvas.width, canvas.height);
+    firmaCtx.clearRect(0,0,canvas.width,canvas.height);
     document.getElementById('firmaData').value = '';
 }
 
+function abrirModalFirma() {
+    const modal = document.getElementById('modalFirma');
+    modal.classList.remove('hidden');
+    modal.classList.add('flex');
+
+    setTimeout(() => {
+        const canvas = document.getElementById('firmaModalCanvas');
+        canvas.width = canvas.offsetWidth;
+        canvas.height = canvas.offsetHeight || 220;
+        firmaModalCtx = canvas.getContext('2d');
+
+        // Copiar firma existente si hay
+        const src = document.getElementById('firmaCanvas');
+        if (src) firmaModalCtx.drawImage(src, 0, 0, canvas.width, canvas.height);
+
+        setupCanvas(canvas, firmaModalCtx,
+            (x,y) => { firmaModalLastX=x; firmaModalLastY=y; },
+            (x,y) => { drawLine(firmaModalCtx,firmaModalLastX,firmaModalLastY,x,y); firmaModalLastX=x; firmaModalLastY=y; }
+        );
+    }, 50);
+}
+
+function limpiarFirmaModal() {
+    const canvas = document.getElementById('firmaModalCanvas');
+    firmaModalCtx.clearRect(0,0,canvas.width,canvas.height);
+}
+
+function guardarFirmaModal() {
+    const modalCanvas = document.getElementById('firmaModalCanvas');
+    const mainCanvas = document.getElementById('firmaCanvas');
+    firmaCtx.clearRect(0,0,mainCanvas.width,mainCanvas.height);
+    firmaCtx.drawImage(modalCanvas, 0, 0, mainCanvas.width, mainCanvas.height);
+    document.getElementById('firmaData').value = mainCanvas.toDataURL('image/png');
+    cerrarModalFirma();
+}
+
+function cerrarModalFirma() {
+    const modal = document.getElementById('modalFirma');
+    modal.classList.add('hidden');
+    modal.classList.remove('flex');
+}
+
+document.getElementById('modalFirma').addEventListener('click', function(e) {
+    if (e.target === this) cerrarModalFirma();
+});
+
+// ═══════════════════════════════════════
+// VALIDAR Y ENVIAR
+// ═══════════════════════════════════════
 function enviarFormulario() {
+    // Guardar firma
     const canvas = document.getElementById('firmaCanvas');
-    document.getElementById('firmaData').value = canvas.toDataURL();
+    document.getElementById('firmaData').value = canvas.toDataURL('image/png');
+
+    // Guardar fecha real para el servidor
+    const hoy = new Date();
+    const fechaInput = document.createElement('input');
+    fechaInput.type = 'hidden';
+    fechaInput.name = 'fecha';
+    fechaInput.value = hoy.toISOString().split('T')[0];
+    document.getElementById('formChecklist').appendChild(fechaInput);
+
     document.getElementById('formChecklist').submit();
+}
+
+function mostrarToast(msg, tipo='success') {
+    const toast = document.getElementById('toast');
+    const inner = document.getElementById('toastInner');
+    inner.textContent = msg;
+    inner.className = `px-5 py-3 rounded-xl shadow-lg text-sm font-semibold flex items-center gap-2 ${
+        tipo === 'error' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'
+    }`;
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.add('hidden'), 3500);
 }
 </script>
 @endpush
