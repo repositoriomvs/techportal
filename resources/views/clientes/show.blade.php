@@ -55,107 +55,103 @@
     {{-- ══════════════════════════════════════ --}}
     {{-- BLOQUE SLA                            --}}
     {{-- ══════════════════════════════════════ --}}
-    @if($cliente->tiene_sla)
     <div class="mt-4 pt-4 border-t border-gray-100">
-        <div class="flex items-center gap-2 mb-3">
-            <span class="inline-flex items-center gap-1.5 bg-green-50 text-green-700 border border-green-200 text-xs font-semibold px-3 py-1 rounded-full">
-                ✓ Cuenta con SLA
+        @if($slas->isNotEmpty())
+            <div class="flex items-center gap-2 mb-3">
+                <span class="inline-flex items-center gap-1.5 bg-green-50 text-green-700 border border-green-200 text-xs font-semibold px-3 py-1 rounded-full">
+                    ✓ Cuenta con SLA
+                </span>
+            </div>
+
+            {{-- Tabla SLA --}}
+            <div class="border border-gray-200 rounded-lg overflow-hidden">
+                {{-- Header --}}
+                <div class="grid grid-cols-4 bg-gray-50 border-b border-gray-200">
+                    <div class="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Prioridad</div>
+                    <div class="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Tiempo respuesta</div>
+                    <div class="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Tiempo resolución</div>
+                    <div class="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Cambio de equipo</div>
+                </div>
+
+                @foreach([
+                    'alta'  => ['label' => 'Alta',  'color' => 'bg-red-500'],
+                    'media' => ['label' => 'Media', 'color' => 'bg-amber-500'],
+                    'baja'  => ['label' => 'Baja',  'color' => 'bg-green-500'],
+                ] as $prioridad => $info)
+                @if(isset($slas[$prioridad]))
+                @php $sla = $slas[$prioridad]; @endphp
+                <div class="grid grid-cols-4 border-b border-gray-100 last:border-b-0 items-center {{ $loop->even ? 'bg-gray-50/50' : '' }}">
+                    <div class="px-4 py-3 flex items-center gap-2">
+                        <span class="inline-block w-2 h-2 rounded-full {{ $info['color'] }}"></span>
+                        <span class="text-sm font-semibold text-gray-700">{{ $info['label'] }}</span>
+                    </div>
+                    <div class="px-4 py-3 text-center">
+                        @if($sla->horas_respuesta > 0)
+                            <span class="text-sm font-bold text-gray-900">{{ $sla->horas_respuesta }}</span>
+                            <span class="text-xs text-gray-400 ml-1">hr{{ $sla->horas_respuesta !== 1 ? 's' : '' }}</span>
+                        @else
+                            <span class="text-xs text-gray-400">—</span>
+                        @endif
+                    </div>
+                    <div class="px-4 py-3 text-center">
+                        @if($sla->horas_resolucion > 0)
+                            <span class="text-sm font-bold text-gray-900">{{ $sla->horas_resolucion }}</span>
+                            <span class="text-xs text-gray-400 ml-1">hr{{ $sla->horas_resolucion !== 1 ? 's' : '' }}</span>
+                        @else
+                            <span class="text-xs text-gray-400">—</span>
+                        @endif
+                    </div>
+                    <div class="px-4 py-3 text-center">
+                        @if($sla->horas_cambio_equipo > 0)
+                            <span class="text-sm font-bold text-gray-900">{{ $sla->horas_cambio_equipo }}</span>
+                            <span class="text-xs text-gray-400 ml-1">hr{{ $sla->horas_cambio_equipo !== 1 ? 's' : '' }}</span>
+                        @else
+                            <span class="text-xs text-gray-400">—</span>
+                        @endif
+                    </div>
+                </div>
+                @endif
+                @endforeach
+            </div>
+
+        @else
+            <span class="inline-flex items-center gap-1.5 bg-gray-50 text-gray-400 border border-gray-200 text-xs font-semibold px-3 py-1 rounded-full">
+                — Sin SLA definido
             </span>
-        </div>
-        <div class="grid grid-cols-3 gap-3">
-
-            {{-- Tiempo respuesta --}}
-            <div class="bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 text-center">
-                <div class="text-xs font-mono text-gray-400 uppercase tracking-wider mb-1">Tiempo respuesta</div>
-                <div class="text-2xl font-bold text-gray-900">
-                    {{ $cliente->sla_tiempo_respuesta > 0 ? $cliente->sla_tiempo_respuesta : '—' }}
-                </div>
-                @if($cliente->sla_tiempo_respuesta > 0)
-                <div class="text-xs text-gray-400 mt-0.5">hora{{ $cliente->sla_tiempo_respuesta !== 1 ? 's' : '' }}</div>
-                @else
-                <div class="text-xs text-gray-400 mt-0.5">sin compromiso</div>
-                @endif
-            </div>
-
-            {{-- Tiempo solución --}}
-            <div class="bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 text-center">
-                <div class="text-xs font-mono text-gray-400 uppercase tracking-wider mb-1">Tiempo solución</div>
-                <div class="text-2xl font-bold text-gray-900">
-                    {{ $cliente->sla_tiempo_solucion > 0 ? $cliente->sla_tiempo_solucion : '—' }}
-                </div>
-                @if($cliente->sla_tiempo_solucion > 0)
-                <div class="text-xs text-gray-400 mt-0.5">hora{{ $cliente->sla_tiempo_solucion !== 1 ? 's' : '' }}</div>
-                @else
-                <div class="text-xs text-gray-400 mt-0.5">sin compromiso</div>
-                @endif
-            </div>
-
-            {{-- Cambio de equipo --}}
-            <div class="bg-gray-50 border border-gray-100 rounded-lg px-4 py-3 text-center">
-                <div class="text-xs font-mono text-gray-400 uppercase tracking-wider mb-1">Cambio de equipo</div>
-                <div class="text-2xl font-bold text-gray-900">
-                    {{ $cliente->sla_tiempo_cambio_equipo > 0 ? $cliente->sla_tiempo_cambio_equipo : '—' }}
-                </div>
-                @if($cliente->sla_tiempo_cambio_equipo > 0)
-                <div class="text-xs text-gray-400 mt-0.5">hora{{ $cliente->sla_tiempo_cambio_equipo !== 1 ? 's' : '' }}</div>
-                @else
-                <div class="text-xs text-gray-400 mt-0.5">sin compromiso</div>
-                @endif
-            </div>
-
-        </div>
+        @endif
     </div>
-    @else
-    <div class="mt-4 pt-4 border-t border-gray-100">
-        <span class="inline-flex items-center gap-1.5 bg-gray-50 text-gray-400 border border-gray-200 text-xs font-semibold px-3 py-1 rounded-full">
-            — Sin SLA definido
-        </span>
-    </div>
-    @endif
 </div>
 
 {{-- Tabs --}}
 <div x-data="{ tab: 'documentos' }">
 
-    {{-- Tab buttons --}}
     <div class="flex gap-0 bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm mb-4">
         <button @click="tab = 'documentos'"
                 :class="tab === 'documentos' ? 'bg-red-50 text-red-600 font-bold border-b-2 border-red-600' : 'text-gray-500 hover:bg-gray-50'"
                 class="flex-1 px-4 py-3 text-sm transition-all flex items-center justify-center gap-2">
             📄 Documentos
-            <span class="bg-gray-100 text-gray-600 text-xs font-mono px-2 py-0.5 rounded-full">
-                {{ $documentos->count() }}
-            </span>
+            <span class="bg-gray-100 text-gray-600 text-xs font-mono px-2 py-0.5 rounded-full">{{ $documentos->count() }}</span>
         </button>
         <button @click="tab = 'procedimientos'"
                 :class="tab === 'procedimientos' ? 'bg-red-50 text-red-600 font-bold border-b-2 border-red-600' : 'text-gray-500 hover:bg-gray-50'"
                 class="flex-1 px-4 py-3 text-sm transition-all flex items-center justify-center gap-2 border-x border-gray-200">
             📋 Procedimientos
-            <span class="bg-gray-100 text-gray-600 text-xs font-mono px-2 py-0.5 rounded-full">
-                {{ $procedimientos->count() }}
-            </span>
+            <span class="bg-gray-100 text-gray-600 text-xs font-mono px-2 py-0.5 rounded-full">{{ $procedimientos->count() }}</span>
         </button>
         <button @click="tab = 'imagenes'"
                 :class="tab === 'imagenes' ? 'bg-red-50 text-red-600 font-bold border-b-2 border-red-600' : 'text-gray-500 hover:bg-gray-50'"
                 class="flex-1 px-4 py-3 text-sm transition-all flex items-center justify-center gap-2">
             🖼️ Imágenes
-            <span class="bg-gray-100 text-gray-600 text-xs font-mono px-2 py-0.5 rounded-full">
-                {{ $imagenes->count() }}
-            </span>
+            <span class="bg-gray-100 text-gray-600 text-xs font-mono px-2 py-0.5 rounded-full">{{ $imagenes->count() }}</span>
         </button>
     </div>
 
-    {{-- Tab: Documentos --}}
     <div x-show="tab === 'documentos'">
         @include('clientes.partials.tabla-recursos', ['recursos' => $documentos, 'categoria' => 'documento'])
     </div>
-
-    {{-- Tab: Procedimientos --}}
     <div x-show="tab === 'procedimientos'">
         @include('clientes.partials.tabla-recursos', ['recursos' => $procedimientos, 'categoria' => 'procedimiento'])
     </div>
-
-    {{-- Tab: Imágenes --}}
     <div x-show="tab === 'imagenes'">
         @include('clientes.partials.tabla-recursos', ['recursos' => $imagenes, 'categoria' => 'imagen'])
     </div>
