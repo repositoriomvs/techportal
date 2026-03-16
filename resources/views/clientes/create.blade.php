@@ -132,98 +132,42 @@
                 </div>
 
                 <div id="sla_campos" class="{{ old('tiene_sla') ? '' : 'hidden' }}">
-
                     <div class="bg-blue-50 border border-blue-100 rounded-lg px-4 py-3 mb-4 text-xs text-blue-700">
-                        ℹ️ Define los tiempos en <strong>horas</strong> para cada nivel de prioridad. Si no aplica un compromiso, ingresa <strong>0</strong>.
+                        ℹ️ Los tiempos se expresan en <strong>horas</strong>. Si no aplica algún compromiso, ingresa <strong>0</strong>.
                     </div>
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
-                    {{-- Tabla SLA por prioridad --}}
-                    <div class="border border-gray-200 rounded-lg overflow-hidden">
-
-                        {{-- Header --}}
-                        <div class="grid grid-cols-4 bg-gray-50 border-b border-gray-200">
-                            <div class="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider">Prioridad</div>
-                            <div class="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Tiempo respuesta (hrs)</div>
-                            <div class="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Tiempo resolución (hrs)</div>
-                            <div class="px-4 py-2.5 text-xs font-bold text-gray-500 uppercase tracking-wider text-center">Cambio de equipo (hrs)</div>
+                        <div>
+                            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">
+                                Tiempo respuesta <span class="normal-case font-sans text-gray-400">(hrs)</span>
+                            </label>
+                            <input type="number" name="sla_horas_respuesta"
+                                   value="{{ old('sla_horas_respuesta', 0) }}"
+                                   min="0"
+                                   class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm font-mono text-center focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
+                            <p class="text-xs text-gray-400 mt-1">Tiempo máximo para dar respuesta</p>
                         </div>
 
-                        {{-- Fila Alta --}}
-                        <div class="grid grid-cols-4 border-b border-gray-100 items-center">
-                            <div class="px-4 py-3 flex items-center gap-2">
-                                <span class="inline-block w-2 h-2 rounded-full bg-red-500"></span>
-                                <span class="text-sm font-semibold text-gray-700">Alta</span>
-                            </div>
-                            <div class="px-3 py-2">
-                                <input type="number" name="sla[alta][horas_respuesta]"
-                                       value="{{ old('sla.alta.horas_respuesta', 0) }}"
-                                       min="0" placeholder="0"
-                                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-center focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
-                            </div>
-                            <div class="px-3 py-2">
-                                <input type="number" name="sla[alta][horas_resolucion]"
-                                       value="{{ old('sla.alta.horas_resolucion', 0) }}"
-                                       min="0" placeholder="0"
-                                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-center focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
-                            </div>
-                            <div class="px-3 py-2">
-                                <input type="number" name="sla[alta][horas_cambio_equipo]"
-                                       value="{{ old('sla.alta.horas_cambio_equipo', 0) }}"
-                                       min="0" placeholder="0"
-                                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-center focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
-                            </div>
+                        <div>
+                            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">
+                                Tiempo resolución <span class="normal-case font-sans text-gray-400">(hrs)</span>
+                            </label>
+                            <input type="number" name="sla_horas_resolucion"
+                                   value="{{ old('sla_horas_resolucion', 0) }}"
+                                   min="0"
+                                   class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm font-mono text-center focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
+                            <p class="text-xs text-gray-400 mt-1">Tiempo máximo para resolver</p>
                         </div>
 
-                        {{-- Fila Media --}}
-                        <div class="grid grid-cols-4 border-b border-gray-100 items-center bg-gray-50/50">
-                            <div class="px-4 py-3 flex items-center gap-2">
-                                <span class="inline-block w-2 h-2 rounded-full bg-amber-500"></span>
-                                <span class="text-sm font-semibold text-gray-700">Media</span>
-                            </div>
-                            <div class="px-3 py-2">
-                                <input type="number" name="sla[media][horas_respuesta]"
-                                       value="{{ old('sla.media.horas_respuesta', 0) }}"
-                                       min="0" placeholder="0"
-                                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-center focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
-                            </div>
-                            <div class="px-3 py-2">
-                                <input type="number" name="sla[media][horas_resolucion]"
-                                       value="{{ old('sla.media.horas_resolucion', 0) }}"
-                                       min="0" placeholder="0"
-                                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-center focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
-                            </div>
-                            <div class="px-3 py-2">
-                                <input type="number" name="sla[media][horas_cambio_equipo]"
-                                       value="{{ old('sla.media.horas_cambio_equipo', 0) }}"
-                                       min="0" placeholder="0"
-                                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-center focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
-                            </div>
-                        </div>
-
-                        {{-- Fila Baja --}}
-                        <div class="grid grid-cols-4 items-center">
-                            <div class="px-4 py-3 flex items-center gap-2">
-                                <span class="inline-block w-2 h-2 rounded-full bg-green-500"></span>
-                                <span class="text-sm font-semibold text-gray-700">Baja</span>
-                            </div>
-                            <div class="px-3 py-2">
-                                <input type="number" name="sla[baja][horas_respuesta]"
-                                       value="{{ old('sla.baja.horas_respuesta', 0) }}"
-                                       min="0" placeholder="0"
-                                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-center focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
-                            </div>
-                            <div class="px-3 py-2">
-                                <input type="number" name="sla[baja][horas_resolucion]"
-                                       value="{{ old('sla.baja.horas_resolucion', 0) }}"
-                                       min="0" placeholder="0"
-                                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-center focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
-                            </div>
-                            <div class="px-3 py-2">
-                                <input type="number" name="sla[baja][horas_cambio_equipo]"
-                                       value="{{ old('sla.baja.horas_cambio_equipo', 0) }}"
-                                       min="0" placeholder="0"
-                                       class="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm font-mono text-center focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
-                            </div>
+                        <div>
+                            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">
+                                Cambio de equipo <span class="normal-case font-sans text-gray-400">(hrs)</span>
+                            </label>
+                            <input type="number" name="sla_horas_cambio_equipo"
+                                   value="{{ old('sla_horas_cambio_equipo', 0) }}"
+                                   min="0"
+                                   class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm font-mono text-center focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
+                            <p class="text-xs text-gray-400 mt-1">Tiempo máximo para reemplazar</p>
                         </div>
 
                     </div>
