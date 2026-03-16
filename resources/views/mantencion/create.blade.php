@@ -345,15 +345,63 @@ function eliminarEquipo(idx) {
 // ═══════════════════════════════════════
 // CHECKLIST
 // ═══════════════════════════════════════
+// Modifica la función cargarChecklist para que sea más robusta
 function cargarChecklist(idx) {
-    const tipo = document.getElementById(`tipo-${idx}`).value;
-    if (!tipo || !ITEMS[tipo]) return;
+    const selectElement = document.getElementById(`tipo-${idx}`);
+    if (!selectElement) return;
+
+    const tipo = selectElement.value;
+    const checkDiv = document.getElementById(`checklist-${idx}`);
+
+    // Si no hay tipo seleccionado, ocultamos el contenedor y salimos
+    if (!tipo) {
+        checkDiv.innerHTML = '';
+        checkDiv.classList.add('hidden');
+        return;
+    }
+
+    if (!ITEMS[tipo]) {
+        console.warn(`No hay items definidos para el tipo: ${tipo}`);
+        return;
+    }
 
     const secciones = {};
     ITEMS[tipo].forEach(item => {
         if (!secciones[item.seccion]) secciones[item.seccion] = [];
         secciones[item.seccion].push(item);
     });
+
+    let html = '';
+    Object.entries(secciones).forEach(([seccion, items]) => {
+        html += `<div class="px-5 py-2 bg-gray-50 border-y border-gray-100">
+            <span class="font-bold text-gray-700 text-xs uppercase tracking-wider">${seccion}</span>
+        </div>`;
+
+        items.forEach(item => {
+            const opciones = item.tipo_respuesta === 'A' ? OPCIONES_A : OPCIONES_B;
+            html += `
+            <div class="px-5 py-3 border-b border-gray-50 last:border-b-0">
+                <div class="text-sm text-gray-800 font-medium mb-2 flex items-center gap-2">
+                    ${item.descripcion}
+                    ${item.es_critico ? '<span class="text-xs font-mono bg-amber-50 text-amber-600 border border-amber-200 px-2 py-0.5 rounded-full">Crítico</span>' : ''}
+                </div>
+                <div class="flex gap-2 flex-wrap">
+                    ${opciones.map(op => `
+                    <label class="cursor-pointer">
+                        <input type="radio" name="equipos[${idx}][checklist][${item.id}]" value="${op}" class="sr-only peer" required
+                            onchange="onRespuestaChange(${idx}, '${op}', ${item.es_critico}, '${item.descripcion.replace(/'/g, "\\'")}')">
+                        <span class="inline-block px-3 py-1.5 rounded-lg text-xs font-semibold border-2 border-gray-200 text-gray-400 ${COLOR_OPCIONES[op]} transition-all hover:border-gray-300">
+                            ${LABEL_OPCIONES[op]}
+                        </span>
+                    </label>`).join('')}
+                </div>
+            </div>`;
+        });
+    });
+
+    checkDiv.innerHTML = html;
+    checkDiv.classList.remove('hidden');
+}
 
     let html = '';
     Object.entries(secciones).forEach(([seccion, items]) => {
