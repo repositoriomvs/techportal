@@ -9,16 +9,19 @@ class Cliente extends Model
         'nombre', 'codigo', 'contacto',
         'email', 'telefono', 'estado',
         'color', 'notas',
+        'tiene_sla',
+        'sla_horas_respuesta',
+        'sla_horas_resolucion',
+        'sla_horas_cambio_equipo',
+    ];
+
+    protected $casts = [
+        'tiene_sla' => 'boolean',
     ];
 
     public function documentos()
     {
         return $this->hasMany(Documento::class);
-    }
-
-    public function slas()
-    {
-        return $this->hasMany(SlaCliente::class);
     }
 
     public function getInicialesAttribute()
