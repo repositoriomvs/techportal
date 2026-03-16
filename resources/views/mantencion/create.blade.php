@@ -332,6 +332,17 @@ function agregarEquipo() {
                 <input type="file" name="equipos[${idx}][foto_serie]" accept="image/*" capture="environment" required
                     class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-600 hover:file:bg-red-100 transition-all">
             </div>
+        </div>
+
+        <div class="px-5 pb-5 pt-2 flex gap-3 border-t border-gray-100">
+            <button type="button" onclick="guardarEquipo(${idx})"
+                class="flex-1 flex items-center justify-center gap-2 bg-gray-800 hover:bg-gray-900 text-white font-semibold py-2.5 rounded-lg text-sm transition-colors">
+                💾 Guardar equipo
+            </button>
+            <button type="button" onclick="agregarEquipo()"
+                class="flex-1 flex items-center justify-center gap-2 border-2 border-dashed border-gray-300 hover:border-red-400 text-gray-400 hover:text-red-500 rounded-lg py-2.5 text-sm font-semibold transition-all">
+                ＋ Agregar otro equipo
+            </button>
         </div>`;
 
     container.appendChild(div);
