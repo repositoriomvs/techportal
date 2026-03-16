@@ -7,7 +7,13 @@ class SlaCliente extends Model
 {
     protected $table = 'sla_clientes';
 
-    protected $fillable = ['cliente_id', 'prioridad', 'horas_respuesta', 'horas_resolucion'];
+    protected $fillable = [
+        'cliente_id',
+        'prioridad',
+        'horas_respuesta',
+        'horas_resolucion',
+        'horas_cambio_equipo',
+    ];
 
     public function cliente()
     {
