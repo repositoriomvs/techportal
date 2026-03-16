@@ -35,14 +35,12 @@ class MantencionController extends Controller
     // ── CREAR ─────────────────────────────────────────────
 public function create()
 {
-    // 1. Obtener los items (asegúrate de que la columna 'tipo_equipo' 
-    // contenga valores como 'computador_aio', 'impresora_termica', etc.)
-    $itemsRaw = ItemMantencion::all(); 
+    $itemsRaw = ItemMantencion::all();
+    
+    $items = $itemsRaw->groupBy('tipo_equipo')->map(fn($group) => $group->values())->toArray();
 
-    // 2. Agruparlos por tipo para que JS pueda acceder a ellos por llave
-    $items = $itemsRaw->groupBy('tipo_equipo');
+    $clientes = Cliente::orderBy('nombre')->get();
 
-    // 3. Pasar a la vista
     return view('mantencion.create', compact('items', 'clientes'));
 }
 
