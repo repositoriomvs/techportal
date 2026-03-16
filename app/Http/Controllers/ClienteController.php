@@ -66,7 +66,7 @@ class ClienteController extends Controller
         $documentos     = $cliente->documentos()->where('categoria', 'documento')->get();
         $procedimientos = $cliente->documentos()->where('categoria', 'procedimiento')->get();
         $imagenes       = $cliente->documentos()->where('categoria', 'imagen')->get();
-        $slas           = $cliente->slas()->orderByRaw("FIELD(prioridad, 'alta', 'media', 'baja')")->get()->keyBy('prioridad');
+        $slas = $cliente->slas()->orderByRaw("CASE prioridad WHEN 'alta' THEN 1 WHEN 'media' THEN 2 WHEN 'baja' THEN 3 END")->get()->keyBy('prioridad');
         return view('clientes.show', compact('cliente', 'documentos', 'procedimientos', 'imagenes', 'slas'));
     }
 
