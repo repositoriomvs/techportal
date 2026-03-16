@@ -33,14 +33,18 @@ class MantencionController extends Controller
     }
 
     // ── CREAR ─────────────────────────────────────────────
-    public function create()
-    {
-        $clientes = Cliente::orderBy('nombre')->get();
-        $items = MantencionItem::orderBy('tipo_equipo')->orderBy('orden')->get()
-            ->groupBy('tipo_equipo');
+public function create()
+{
+    // 1. Obtener los items (asegúrate de que la columna 'tipo_equipo' 
+    // contenga valores como 'computador_aio', 'impresora_termica', etc.)
+    $itemsRaw = ItemMantencion::all(); 
 
-        return view('mantencion.create', compact('clientes', 'items'));
-    }
+    // 2. Agruparlos por tipo para que JS pueda acceder a ellos por llave
+    $items = $itemsRaw->groupBy('tipo_equipo');
+
+    // 3. Pasar a la vista
+    return view('mantencion.create', compact('items', 'clientes'));
+}
 
     // ── GUARDAR ───────────────────────────────────────────
     public function store(Request $request)
