@@ -25,7 +25,7 @@
     <div class="p-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div>
             <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Fecha <span class="text-red-500">*</span></label>
-            <input type="text" name="fecha" id="fechaHoy" readonly
+            <input type="text" name="fecha_display" id="fechaHoy" readonly
                 class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50 text-gray-500 cursor-not-allowed select-none focus:outline-none">
         </div>
         <div>
