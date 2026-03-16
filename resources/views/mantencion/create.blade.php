@@ -13,6 +13,18 @@
 
 @section('content')
 
+{{-- ✅ BLOQUE DE ERRORES DE VALIDACIÓN --}}
+@if ($errors->any())
+    <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl px-5 py-4 mb-5 text-sm">
+        <strong>Por favor corrige los siguientes errores:</strong>
+        <ul class="mt-2 list-disc list-inside">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
 <form id="formChecklist" method="POST" action="{{ route('mantencion.store') }}" enctype="multipart/form-data">
 @csrf
 
@@ -27,11 +39,14 @@
             <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Fecha <span class="text-red-500">*</span></label>
             <input type="text" name="fecha_display" id="fechaHoy" readonly
                 class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50 text-gray-500 cursor-not-allowed select-none focus:outline-none">
+            {{-- ✅ Campo fecha real oculto — se establece al cargar la página, NO al enviar --}}
+            <input type="hidden" name="fecha" id="fechaReal">
         </div>
         <div>
             <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Hora inicio <span class="text-red-500">*</span></label>
-            <input type="time" name="hora_inicio" required
-                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
+            <input type="text" name="hora_inicio" id="horaInicio" readonly
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50 text-gray-500 cursor-not-allowed select-none focus:outline-none"
+                placeholder="Se registra al cargar">
         </div>
         <div>
             <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Hora término</label>
@@ -125,7 +140,7 @@
 {{-- ACCIONES --}}
 <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
     <div class="p-5 flex flex-col sm:flex-row gap-3">
-        <button type="button" onclick="enviarFormulario()"
+        <button type="button" onclick="enviarFormulario()" id="btnEnviar"
             class="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg text-sm transition-colors shadow-sm">
             📤 Enviar Orden
         </button>
@@ -206,14 +221,24 @@ const COLOR_OPCIONES = {
 let equipoCount = 0;
 
 // ═══════════════════════════════════════
-// FECHA AUTOMÁTICA
+// FECHA Y HORA AUTOMÁTICA
 // ═══════════════════════════════════════
 document.addEventListener('DOMContentLoaded', () => {
     const hoy = new Date();
-    const dia = String(hoy.getDate()).padStart(2,'0');
-    const mes = String(hoy.getMonth()+1).padStart(2,'0');
+
+    // Fecha visible (DD/MM/YYYY)
+    const dia  = String(hoy.getDate()).padStart(2,'0');
+    const mes  = String(hoy.getMonth()+1).padStart(2,'0');
     const anio = hoy.getFullYear();
     document.getElementById('fechaHoy').value = `${dia}/${mes}/${anio}`;
+
+    // ✅ Fecha real para el servidor (YYYY-MM-DD) — se setea UNA SOLA VEZ aquí
+    document.getElementById('fechaReal').value = `${anio}-${mes}-${dia}`;
+
+    // Hora inicio automática
+    const horas   = String(hoy.getHours()).padStart(2,'0');
+    const minutos = String(hoy.getMinutes()).padStart(2,'0');
+    document.getElementById('horaInicio').value = `${horas}:${minutos}`;
 
     // Agregar primer equipo automáticamente
     agregarEquipo();
@@ -347,7 +372,8 @@ function eliminarEquipo(idx) {
     if (!confirm('¿Eliminar este equipo?')) return;
     document.getElementById(`equipo-${idx}`)?.remove();
 }
-    function guardarEquipo(idx) {
+
+function guardarEquipo(idx) {
     const tipo   = document.getElementById(`tipo-${idx}`)?.value;
     const marca  = document.querySelector(`input[name="equipos[${idx}][marca]"]`)?.value;
     const modelo = document.querySelector(`input[name="equipos[${idx}][modelo]"]`)?.value;
@@ -431,7 +457,6 @@ function onRespuestaChange(idx, valor, esCritico, nombre) {
         recalcularEstado(idx);
         return;
     }
-
     forzarDefectuoso(idx, nombre, esCritico);
 }
 
@@ -494,7 +519,7 @@ function actualizarBadge(idx) {
     const checked = document.querySelector(`input[name="equipos[${idx}][estado_final]"]:checked`);
     if (!checked) return;
     const labels = { operativo:'✅ Operativo', operativo_con_observaciones:'⚠️ Con obs.', defectuoso:'❌ Defectuoso' };
-    const colors = { operativo:'bg-green-50 text-green-700', operativo_con_observaciones:'bg-amber-50 text-amber-700', defectuoso:'bg-red-50 text-red-700' };
+    const colors  = { operativo:'bg-green-50 text-green-700', operativo_con_observaciones:'bg-amber-50 text-amber-700', defectuoso:'bg-red-50 text-red-700' };
     badge.textContent = labels[checked.value];
     badge.className = `ml-auto text-xs font-mono px-2 py-0.5 rounded-full ${colors[checked.value]}`;
 }
@@ -502,33 +527,36 @@ function actualizarBadge(idx) {
 // ═══════════════════════════════════════
 // FIRMA
 // ═══════════════════════════════════════
-let firmaCtx, firmaDibujando = false, firmaLastX = 0, firmaLastY = 0;
-let firmaModalCtx, firmaModalDibujando = false, firmaModalLastX = 0, firmaModalLastY = 0;
+let firmaCtx, firmaModalCtx;
+let firmaModalLastX = 0, firmaModalLastY = 0;
 
 function initFirma() {
     const canvas = document.getElementById('firmaCanvas');
-    canvas.width = canvas.offsetWidth;
+    canvas.width  = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight || 100;
     firmaCtx = canvas.getContext('2d');
-    setupCanvas(canvas, firmaCtx, (x,y) => { firmaLastX=x; firmaLastY=y; }, (x,y) => { drawLine(firmaCtx,firmaLastX,firmaLastY,x,y); firmaLastX=x; firmaLastY=y; });
+    setupCanvas(canvas, firmaCtx,
+        (x,y) => { firmaCtx._lastX=x; firmaCtx._lastY=y; },
+        (x,y) => { drawLine(firmaCtx, firmaCtx._lastX, firmaCtx._lastY, x, y); firmaCtx._lastX=x; firmaCtx._lastY=y; }
+    );
 }
 
 function setupCanvas(canvas, ctx, onStart, onMove) {
     const getPos = (e) => {
-        const rect = canvas.getBoundingClientRect();
-        const scaleX = canvas.width / rect.width;
+        const rect   = canvas.getBoundingClientRect();
+        const scaleX = canvas.width  / rect.width;
         const scaleY = canvas.height / rect.height;
         if (e.touches) return { x:(e.touches[0].clientX-rect.left)*scaleX, y:(e.touches[0].clientY-rect.top)*scaleY };
         return { x:(e.clientX-rect.left)*scaleX, y:(e.clientY-rect.top)*scaleY };
     };
     let drawing = false;
-    canvas.addEventListener('mousedown', e => { drawing=true; const p=getPos(e); onStart(p.x,p.y); });
-    canvas.addEventListener('mousemove', e => { if(!drawing) return; const p=getPos(e); onMove(p.x,p.y); });
-    canvas.addEventListener('mouseup', () => drawing=false);
+    canvas.addEventListener('mousedown',  e => { drawing=true;  const p=getPos(e); onStart(p.x,p.y); });
+    canvas.addEventListener('mousemove',  e => { if(!drawing) return; const p=getPos(e); onMove(p.x,p.y); });
+    canvas.addEventListener('mouseup',    () => drawing=false);
     canvas.addEventListener('mouseleave', () => drawing=false);
     canvas.addEventListener('touchstart', e => { e.preventDefault(); drawing=true; const p=getPos(e); onStart(p.x,p.y); }, {passive:false});
-    canvas.addEventListener('touchmove', e => { e.preventDefault(); if(!drawing) return; const p=getPos(e); onMove(p.x,p.y); }, {passive:false});
-    canvas.addEventListener('touchend', () => drawing=false);
+    canvas.addEventListener('touchmove',  e => { e.preventDefault(); if(!drawing) return; const p=getPos(e); onMove(p.x,p.y); }, {passive:false});
+    canvas.addEventListener('touchend',   () => drawing=false);
 }
 
 function drawLine(ctx, x1, y1, x2, y2) {
@@ -538,7 +566,7 @@ function drawLine(ctx, x1, y1, x2, y2) {
 
 function limpiarFirma() {
     const canvas = document.getElementById('firmaCanvas');
-    firmaCtx.clearRect(0,0,canvas.width,canvas.height);
+    firmaCtx.clearRect(0, 0, canvas.width, canvas.height);
     document.getElementById('firmaData').value = '';
 }
 
@@ -549,7 +577,7 @@ function abrirModalFirma() {
 
     setTimeout(() => {
         const canvas = document.getElementById('firmaModalCanvas');
-        canvas.width = canvas.offsetWidth;
+        canvas.width  = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight || 220;
         firmaModalCtx = canvas.getContext('2d');
 
@@ -559,20 +587,20 @@ function abrirModalFirma() {
 
         setupCanvas(canvas, firmaModalCtx,
             (x,y) => { firmaModalLastX=x; firmaModalLastY=y; },
-            (x,y) => { drawLine(firmaModalCtx,firmaModalLastX,firmaModalLastY,x,y); firmaModalLastX=x; firmaModalLastY=y; }
+            (x,y) => { drawLine(firmaModalCtx, firmaModalLastX, firmaModalLastY, x, y); firmaModalLastX=x; firmaModalLastY=y; }
         );
     }, 50);
 }
 
 function limpiarFirmaModal() {
     const canvas = document.getElementById('firmaModalCanvas');
-    firmaModalCtx.clearRect(0,0,canvas.width,canvas.height);
+    firmaModalCtx.clearRect(0, 0, canvas.width, canvas.height);
 }
 
 function guardarFirmaModal() {
     const modalCanvas = document.getElementById('firmaModalCanvas');
-    const mainCanvas = document.getElementById('firmaCanvas');
-    firmaCtx.clearRect(0,0,mainCanvas.width,mainCanvas.height);
+    const mainCanvas  = document.getElementById('firmaCanvas');
+    firmaCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
     firmaCtx.drawImage(modalCanvas, 0, 0, mainCanvas.width, mainCanvas.height);
     document.getElementById('firmaData').value = mainCanvas.toDataURL('image/png');
     cerrarModalFirma();
@@ -592,30 +620,19 @@ document.getElementById('modalFirma').addEventListener('click', function(e) {
 // VALIDAR Y ENVIAR
 // ═══════════════════════════════════════
 function enviarFormulario() {
-    // Guardar firma
+    // ✅ Capturar firma del canvas al momento de enviar
     const canvas = document.getElementById('firmaCanvas');
     document.getElementById('firmaData').value = canvas.toDataURL('image/png');
 
-    // Guardar fecha real para el servidor
-    const hoy = new Date();
-    const fechaInput = document.createElement('input');
-    fechaInput.type = 'hidden';
-    fechaInput.name = 'fecha';
-    fechaInput.value = hoy.toISOString().split('T')[0];
-    document.getElementById('formChecklist').appendChild(fechaInput);
+    // ✅ NO se crea ningún input fecha aquí — ya existe desde el DOMContentLoaded
+
+    // Deshabilitar botón para evitar doble envío
+    const btn = document.getElementById('btnEnviar');
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Enviando...';
+    btn.className = btn.className.replace('bg-red-600 hover:bg-red-700', 'bg-gray-400 cursor-not-allowed');
 
     document.getElementById('formChecklist').submit();
-}
-
-function mostrarToast(msg, tipo='success') {
-    const toast = document.getElementById('toast');
-    const inner = document.getElementById('toastInner');
-    inner.textContent = msg;
-    inner.className = `px-5 py-3 rounded-xl shadow-lg text-sm font-semibold flex items-center gap-2 ${
-        tipo === 'error' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'
-    }`;
-    toast.classList.remove('hidden');
-    setTimeout(() => toast.classList.add('hidden'), 3500);
 }
 </script>
 @endpush
