@@ -80,11 +80,6 @@
 {{-- EQUIPOS --}}
 <div id="equiposContainer"></div>
 
-<button type="button" onclick="agregarEquipo()"
-    class="w-full mb-5 border-2 border-dashed border-gray-300 hover:border-red-400 text-gray-400 hover:text-red-500 rounded-xl py-4 text-sm font-semibold transition-all flex items-center justify-center gap-2">
-    <span class="text-xl">＋</span> Agregar otro equipo
-</button>
-
 {{-- FIRMA --}}
 <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-5">
     <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
