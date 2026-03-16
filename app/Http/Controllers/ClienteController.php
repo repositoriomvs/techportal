@@ -2,7 +2,6 @@
 namespace App\Http\Controllers;
 
 use App\Models\Cliente;
-use App\Models\SlaCliente;
 use Illuminate\Http\Request;
 
 class ClienteController extends Controller
@@ -28,34 +27,28 @@ class ClienteController extends Controller
             'telefono' => 'nullable|string|max:50',
             'color'    => 'nullable|string|max:7',
             'notas'    => 'nullable|string',
-            'tiene_sla'                  => 'nullable|boolean',
-            'sla.*.horas_respuesta'      => 'nullable|integer|min:0',
-            'sla.*.horas_resolucion'     => 'nullable|integer|min:0',
-            'sla.*.horas_cambio_equipo'  => 'nullable|integer|min:0',
+            'tiene_sla'              => 'nullable|boolean',
+            'sla_horas_respuesta'    => 'nullable|integer|min:0',
+            'sla_horas_resolucion'   => 'nullable|integer|min:0',
+            'sla_horas_cambio_equipo'=> 'nullable|integer|min:0',
         ]);
 
-        $cliente = Cliente::create([
-            'nombre'   => $request->nombre,
-            'codigo'   => $request->codigo,
-            'contacto' => $request->contacto,
-            'email'    => $request->email,
-            'telefono' => $request->telefono,
-            'color'    => $request->color,
-            'estado'   => $request->estado ?? 'activo',
-            'notas'    => $request->notas,
-        ]);
+        $tiene_sla = $request->boolean('tiene_sla');
 
-        if ($request->boolean('tiene_sla') && $request->has('sla')) {
-            foreach ($request->sla as $prioridad => $valores) {
-                SlaCliente::create([
-                    'cliente_id'          => $cliente->id,
-                    'prioridad'           => $prioridad,
-                    'horas_respuesta'     => $valores['horas_respuesta']     ?? 0,
-                    'horas_resolucion'    => $valores['horas_resolucion']    ?? 0,
-                    'horas_cambio_equipo' => $valores['horas_cambio_equipo'] ?? 0,
-                ]);
-            }
-        }
+        Cliente::create([
+            'nombre'                 => $request->nombre,
+            'codigo'                 => $request->codigo,
+            'contacto'               => $request->contacto,
+            'email'                  => $request->email,
+            'telefono'               => $request->telefono,
+            'color'                  => $request->color,
+            'estado'                 => $request->estado ?? 'activo',
+            'notas'                  => $request->notas,
+            'tiene_sla'              => $tiene_sla,
+            'sla_horas_respuesta'    => $tiene_sla ? ($request->sla_horas_respuesta    ?? 0) : 0,
+            'sla_horas_resolucion'   => $tiene_sla ? ($request->sla_horas_resolucion   ?? 0) : 0,
+            'sla_horas_cambio_equipo'=> $tiene_sla ? ($request->sla_horas_cambio_equipo ?? 0) : 0,
+        ]);
 
         return redirect()->route('clientes.index')
             ->with('success', 'Cliente creado correctamente.');
@@ -66,14 +59,12 @@ class ClienteController extends Controller
         $documentos     = $cliente->documentos()->where('categoria', 'documento')->get();
         $procedimientos = $cliente->documentos()->where('categoria', 'procedimiento')->get();
         $imagenes       = $cliente->documentos()->where('categoria', 'imagen')->get();
-        $slas = $cliente->slas()->orderByRaw("CASE prioridad WHEN 'alta' THEN 1 WHEN 'media' THEN 2 WHEN 'baja' THEN 3 END")->get()->keyBy('prioridad');
-        return view('clientes.show', compact('cliente', 'documentos', 'procedimientos', 'imagenes', 'slas'));
+        return view('clientes.show', compact('cliente', 'documentos', 'procedimientos', 'imagenes'));
     }
 
     public function edit(Cliente $cliente)
     {
-        $slas = $cliente->slas()->get()->keyBy('prioridad');
-        return view('clientes.edit', compact('cliente', 'slas'));
+        return view('clientes.edit', compact('cliente'));
     }
 
     public function update(Request $request, Cliente $cliente)
@@ -86,37 +77,28 @@ class ClienteController extends Controller
             'telefono' => 'nullable|string|max:50',
             'color'    => 'nullable|string|max:7',
             'notas'    => 'nullable|string',
-            'tiene_sla'                  => 'nullable|boolean',
-            'sla.*.horas_respuesta'      => 'nullable|integer|min:0',
-            'sla.*.horas_resolucion'     => 'nullable|integer|min:0',
-            'sla.*.horas_cambio_equipo'  => 'nullable|integer|min:0',
+            'tiene_sla'              => 'nullable|boolean',
+            'sla_horas_respuesta'    => 'nullable|integer|min:0',
+            'sla_horas_resolucion'   => 'nullable|integer|min:0',
+            'sla_horas_cambio_equipo'=> 'nullable|integer|min:0',
         ]);
+
+        $tiene_sla = $request->boolean('tiene_sla');
 
         $cliente->update([
-            'nombre'   => $request->nombre,
-            'codigo'   => $request->codigo,
-            'contacto' => $request->contacto,
-            'email'    => $request->email,
-            'telefono' => $request->telefono,
-            'color'    => $request->color,
-            'estado'   => $request->estado ?? $cliente->estado,
-            'notas'    => $request->notas,
+            'nombre'                 => $request->nombre,
+            'codigo'                 => $request->codigo,
+            'contacto'               => $request->contacto,
+            'email'                  => $request->email,
+            'telefono'               => $request->telefono,
+            'color'                  => $request->color,
+            'estado'                 => $request->estado ?? $cliente->estado,
+            'notas'                  => $request->notas,
+            'tiene_sla'              => $tiene_sla,
+            'sla_horas_respuesta'    => $tiene_sla ? ($request->sla_horas_respuesta    ?? 0) : 0,
+            'sla_horas_resolucion'   => $tiene_sla ? ($request->sla_horas_resolucion   ?? 0) : 0,
+            'sla_horas_cambio_equipo'=> $tiene_sla ? ($request->sla_horas_cambio_equipo ?? 0) : 0,
         ]);
-
-        // Eliminar SLAs existentes y recrear
-        $cliente->slas()->delete();
-
-        if ($request->boolean('tiene_sla') && $request->has('sla')) {
-            foreach ($request->sla as $prioridad => $valores) {
-                SlaCliente::create([
-                    'cliente_id'          => $cliente->id,
-                    'prioridad'           => $prioridad,
-                    'horas_respuesta'     => $valores['horas_respuesta']     ?? 0,
-                    'horas_resolucion'    => $valores['horas_resolucion']    ?? 0,
-                    'horas_cambio_equipo' => $valores['horas_cambio_equipo'] ?? 0,
-                ]);
-            }
-        }
 
         return redirect()->route('clientes.index')
             ->with('success', 'Cliente actualizado correctamente.');
@@ -124,7 +106,6 @@ class ClienteController extends Controller
 
     public function destroy(Cliente $cliente)
     {
-        $cliente->slas()->delete();
         $cliente->delete();
         return redirect()->route('clientes.index')
             ->with('success', 'Cliente eliminado.');
