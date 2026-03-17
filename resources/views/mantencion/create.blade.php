@@ -664,28 +664,28 @@ function firmaEstaVacia() {
 // ═══════════════════════════════════════
 // ENVIAR COMPLETO
 // ═══════════════════════════════════════
-function enviarFormulario() {
+async function enviarFormulario() {
     const form = document.getElementById('formChecklist');
-    
-    // 1. Quitar novalidate (por si se usó el parcial antes)
     form.removeAttribute('novalidate');
 
-    // 2. Validar firma
     if (firmaEstaVacia()) {
-        mostrarToast('Firma obligatoria para finalizar.', 'error');
+        mostrarToast('La firma del receptor es obligatoria para finalizar la orden.', 'error');
+        abrirModalFirma();
         return;
     }
 
-    // 3. Capturar data del canvas
     const canvas = document.getElementById('firmaCanvas');
     document.getElementById('firmaData').value = canvas.toDataURL('image/png');
 
-    // 4. Validación nativa de todos los campos 'required'
     if (form.reportValidity()) {
         const btn = document.getElementById('btnEnviar');
         btn.disabled = true;
-        btn.innerHTML = '📤 Finalizando...';
-        form.action = '{{ route("mantencion.store") }}'; // Ruta final
+        btn.innerHTML = '⏳ Procesando imágenes...';
+
+        await convertirImagenesWebp(form); // ← convierte WebP antes de enviar
+
+        btn.innerHTML = '⏳ Enviando Orden Final...';
+        form.action = '{{ route("mantencion.store") }}';
         form.submit();
     }
 }
@@ -722,7 +722,30 @@ function enviarFormulario() {
         form.submit();
     }
 }
+async function guardarParcial() {
+    if (!firmaEstaVacia()) {
+        mostrarToast('No puedes guardar parcialmente cuando ya hay una firma.', 'error');
+        return;
+    }
 
+    const form = document.getElementById('formChecklist');
+    const btn  = document.getElementById('btnParcial');
+
+    form.action    = '{{ route("mantencion.store.parcial") }}';
+    form.noValidate = true;
+    btn.disabled   = true;
+    btn.innerHTML  = '⏳ Procesando imágenes...';
+
+    await convertirImagenesWebp(form); // ← convierte WebP antes de guardar
+
+    btn.innerHTML = '⏳ Guardando progreso...';
+
+    if (typeof form.requestSubmit === 'function') {
+        form.requestSubmit();
+    } else {
+        form.submit();
+    }
+}
 // ═══════════════════════════════════════
 // ✅ MODIFICACIÓN AL GUARDADO PARCIAL
 // ═══════════════════════════════════════
@@ -757,6 +780,48 @@ function guardarParcial() {
     document.addEventListener('DOMContentLoaded', () => {
         window.scrollTo({ top: 0, behavior: 'smooth' });
     });
+    // ═══════════════════════════════════════
+// CONVERTIR WEBP → JPEG EN FRONTEND
+// ═══════════════════════════════════════
+async function convertirImagenesWebp(form) {
+    const fileInputs = form.querySelectorAll('input[type="file"]');
+    for (const input of fileInputs) {
+        if (!input.files.length) continue;
+        const archivos = [];
+        for (const file of input.files) {
+            if (file.type !== 'image/webp') {
+                archivos.push(file);
+                continue;
+            }
+            // Convertir WebP a JPEG con Canvas
+            const convertido = await new Promise((resolve) => {
+                const img = new Image();
+                const url = URL.createObjectURL(file);
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width  = img.width;
+                    canvas.height = img.height;
+                    canvas.getContext('2d').drawImage(img, 0, 0);
+                    canvas.toBlob((blob) => {
+                        const nuevoArchivo = new File(
+                            [blob],
+                            file.name.replace(/\.webp$/i, '.jpg'),
+                            { type: 'image/jpeg' }
+                        );
+                        URL.revokeObjectURL(url);
+                        resolve(nuevoArchivo);
+                    }, 'image/jpeg', 0.9);
+                };
+                img.src = url;
+            });
+            archivos.push(convertido);
+        }
+        // Reemplazar archivos en el input
+        const dt = new DataTransfer();
+        archivos.forEach(f => dt.items.add(f));
+        input.files = dt.files;
+    }
+}
 </script>
 @endif
 @endpush
