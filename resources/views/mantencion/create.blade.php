@@ -1,6 +1,210 @@
+@extends('layouts.app')
+
+@section('title', 'Nueva Orden de Mantención')
+@section('page-title', 'Nueva Orden de Mantención')
+@section('page-subtitle', 'Mantención preventiva · Todos los campos son obligatorios')
+
+@section('topbar-actions')
+    <a href="{{ route('mantencion.index') }}"
+       class="text-sm text-gray-500 hover:text-gray-700 border border-gray-200 px-4 py-2 rounded-lg transition-colors">
+        ← Volver
+    </a>
+@endsection
+
+@section('content')
+
+{{-- BLOQUE DE ERRORES --}}
+@if ($errors->any())
+    <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl px-5 py-4 mb-5 text-sm">
+        <strong>Por favor corrige los siguientes errores:</strong>
+        <ul class="mt-2 list-disc list-inside">
+            @foreach ($errors->all() as $error)
+                <li>{{ $error }}</li>
+            @endforeach
+        </ul>
+    </div>
+@endif
+
+<form id="formChecklist" method="POST" action="{{ route('mantencion.store') }}" enctype="multipart/form-data">
+@csrf
+
+{{-- DATOS DEL SERVICIO --}}
+<div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-5">
+    <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+        <span>📋</span>
+        <span class="font-bold text-gray-900 text-sm">1. Datos del Servicio</span>
+    </div>
+    <div class="p-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div>
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Fecha <span class="text-red-500">*</span></label>
+            <input type="text" name="fecha_display" id="fechaHoy" readonly
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50 text-gray-500 cursor-not-allowed select-none focus:outline-none">
+            <input type="hidden" name="fecha" id="fechaReal">
+        </div>
+        <div>
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Hora inicio <span class="text-red-500">*</span></label>
+            <input type="text" name="hora_inicio" id="horaInicio" readonly
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50 text-gray-500 cursor-not-allowed select-none focus:outline-none">
+        </div>
+        <div>
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Hora término</label>
+            <input type="text" readonly
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50 text-gray-400 cursor-not-allowed select-none focus:outline-none"
+                placeholder="Se registra al enviar">
+        </div>
+    </div>
+</div>
+
+{{-- DATOS DEL CLIENTE --}}
+<div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-5">
+    <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+        <span>🏢</span>
+        <span class="font-bold text-gray-900 text-sm">2. Datos del Cliente</span>
+    </div>
+    <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div class="sm:col-span-2">
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Cliente <span class="text-red-500">*</span></label>
+            <select name="cliente_id" required
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
+                <option value="">— Seleccionar cliente —</option>
+                @foreach($clientes as $cliente)
+                    <option value="{{ $cliente->id }}">{{ $cliente->nombre }}</option>
+                @endforeach
+            </select>
+        </div>
+        <div>
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Código local <span class="text-red-500">*</span></label>
+            <input type="text" name="codigo_local" required placeholder="Ej: LOC-001"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
+        </div>
+        <div>
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Ciudad <span class="text-red-500">*</span></label>
+            <input type="text" name="ciudad" required placeholder="Ej: Santiago"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
+        </div>
+        <div class="sm:col-span-2">
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Dirección <span class="text-red-500">*</span></label>
+            <input type="text" name="direccion" required placeholder="Ej: Av. Providencia 1234"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
+        </div>
+    </div>
+</div>
+
+{{-- EQUIPOS --}}
+<div id="equiposContainer"></div>
+
+{{-- BOTÓN AGREGAR --}}
+<div class="mb-5">
+    <button type="button" onclick="agregarEquipo()"
+        class="w-full flex items-center justify-center gap-2 bg-white border-2 border-dashed border-gray-300 hover:border-red-400 text-gray-500 hover:text-red-600 rounded-xl py-4 text-sm font-bold transition-all shadow-sm group">
+        <span class="text-lg group-hover:scale-125 transition-transform">➕</span>
+        Agregar un nuevo equipo a la orden
+    </button>
+</div>
+
+{{-- FIRMA --}}
+<div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-5">
+    <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+        <span>✍️</span>
+        <span class="font-bold text-gray-900 text-sm">Recepción del Servicio</span>
+    </div>
+    <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div>
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Nombre receptor <span class="text-red-500">*</span></label>
+            <input type="text" name="firma_nombre" id="firma_nombre" required placeholder="Nombre completo"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
+        </div>
+        <div>
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Cargo <span class="text-red-500">*</span></label>
+            <input type="text" name="firma_cargo" id="firma_cargo" required placeholder="Cargo del receptor"
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
+        </div>
+        <div class="sm:col-span-2">
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Firma <span class="text-red-500">*</span></label>
+            <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
+                <div class="border-2 border-dashed border-gray-300 rounded-lg overflow-hidden bg-white mb-2" style="touch-action:none; height:100px;">
+                    <canvas id="firmaCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+                </div>
+                <div class="flex items-center justify-between">
+                    <span class="text-xs text-gray-400">Dibuja la firma con el dedo o mouse</span>
+                    <div class="flex gap-2">
+                        <button type="button" onclick="limpiarFirma()"
+                            class="text-xs text-gray-400 hover:text-red-500 border border-gray-200 px-3 py-1 rounded transition-colors">
+                            🗑 Limpiar
+                        </button>
+                        <button type="button" onclick="abrirModalFirma()"
+                            class="text-xs text-gray-600 hover:text-gray-800 border border-gray-300 px-3 py-1 rounded transition-colors">
+                            ⛶ Ampliar
+                        </button>
+                    </div>
+                </div>
+            </div>
+            <input type="hidden" name="firma_imagen" id="firmaData">
+        </div>
+    </div>
+</div>
+
+{{-- ACCIONES --}}
+<div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
+    <div class="p-5 flex flex-col sm:flex-row gap-3">
+        <button type="button" onclick="enviarFormulario()" id="btnEnviar"
+            class="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg text-sm transition-colors shadow-sm">
+            📤 Enviar Orden
+        </button>
+        <button type="button" onclick="guardarParcial()" id="btnParcial"
+            class="flex-1 flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 rounded-lg text-sm transition-colors shadow-sm">
+            💾 Guardado Parcial
+        </button>
+        <a href="{{ route('mantencion.index') }}"
+            class="flex-1 flex items-center justify-center gap-2 border border-gray-300 hover:border-gray-400 text-gray-600 font-semibold py-3 rounded-lg text-sm transition-colors">
+            Cancelar
+        </a>
+    </div>
+    <div class="px-5 pb-4 text-center">
+        <p class="text-xs text-gray-400 font-mono">
+            📤 Enviar Orden requiere firma del receptor ·
+            💾 Guardado Parcial guarda sin firma para continuar después
+        </p>
+    </div>
+</div>
+
+</form>
+
+{{-- MODAL FIRMA AMPLIADA --}}
+<div id="modalFirma" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4">
+    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <div class="font-bold text-gray-900">✍️ Firma del receptor</div>
+            <div class="flex gap-2">
+                <button type="button" onclick="limpiarFirmaModal()"
+                    class="text-sm text-gray-500 hover:text-red-500 border border-gray-200 px-3 py-1.5 rounded-lg transition-colors">
+                    🗑 Limpiar
+                </button>
+                <button type="button" onclick="guardarFirmaModal()"
+                    class="text-sm bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-1.5 rounded-lg transition-colors">
+                    ✓ Guardar firma
+                </button>
+            </div>
+        </div>
+        <div class="p-5">
+            <div class="border-2 border-dashed border-gray-300 rounded-xl overflow-hidden bg-gray-50" style="touch-action:none; height:220px;">
+                <canvas id="firmaModalCanvas" class="w-full h-full block cursor-crosshair"></canvas>
+            </div>
+            <p class="text-xs text-gray-400 text-center mt-2">Dibuja la firma con el dedo o mouse</p>
+        </div>
+    </div>
+</div>
+
+{{-- TOAST --}}
+<div id="toast" class="fixed bottom-6 right-6 z-50 hidden">
+    <div id="toastInner" class="px-5 py-3 rounded-xl shadow-lg text-sm font-semibold flex items-center gap-2"></div>
+</div>
+
+@endsection
+
 @push('scripts')
 <script>
-const ITEMS = @json($items);
+const ITEMS = @json($items ?? []);
 
 const OPCIONES_A = ['operativo','defectuoso','no_aplica'];
 const OPCIONES_B = ['realizado','no_realizado','no_aplica'];
@@ -23,15 +227,20 @@ document.addEventListener('DOMContentLoaded', () => {
     const dia  = String(hoy.getDate()).padStart(2,'0');
     const mes  = String(hoy.getMonth()+1).padStart(2,'0');
     const anio = hoy.getFullYear();
-    document.getElementById('fechaHoy').value  = `${dia}/${mes}/${anio}`;
-    document.getElementById('fechaReal').value = `${anio}-${mes}-${dia}`;
+
+    const fechaHoy   = document.getElementById('fechaHoy');
+    const fechaReal  = document.getElementById('fechaReal');
+    const horaInicio = document.getElementById('horaInicio');
+
+    if (fechaHoy)  fechaHoy.value  = `${dia}/${mes}/${anio}`;
+    if (fechaReal) fechaReal.value = `${anio}-${mes}-${dia}`;
 
     const horas   = String(hoy.getHours()).padStart(2,'0');
     const minutos = String(hoy.getMinutes()).padStart(2,'0');
-    document.getElementById('horaInicio').value = `${horas}:${minutos}`;
+    if (horaInicio) horaInicio.value = `${horas}:${minutos}`;
 
-    agregarEquipo();
-    initFirma();
+    if (document.getElementById('equiposContainer')) agregarEquipo();
+    if (document.getElementById('firmaCanvas')) initFirma();
 
     @if ($errors->any())
         window.scrollTo({ top: 0, behavior: 'smooth' });
@@ -42,23 +251,28 @@ document.addEventListener('DOMContentLoaded', () => {
 // EQUIPOS
 // ═══════════════════════════════════════
 function agregarEquipo() {
+    const container = document.getElementById('equiposContainer');
+    if (!container) return;
+
     if (equipoCount > 0) {
         const ultimoEquipo = document.getElementById(`equipo-${equipoCount}`);
-        const camposIncompletos = ultimoEquipo.querySelectorAll('input[required], select[required], textarea[required]');
-        let faltaInformacion = false;
-        camposIncompletos.forEach(campo => {
-            if (!campo.value.trim()) {
-                faltaInformacion = true;
-                campo.classList.add('border-red-500');
-            } else {
-                campo.classList.remove('border-red-500');
+        if (ultimoEquipo) {
+            const campos = ultimoEquipo.querySelectorAll('input[required], select[required], textarea[required]');
+            let falta = false;
+            campos.forEach(campo => {
+                if (!campo.value.trim()) {
+                    falta = true;
+                    campo.classList.add('border-red-500');
+                } else {
+                    campo.classList.remove('border-red-500');
+                }
+            });
+            if (falta) {
+                alert("Por favor, completa todos los campos del equipo actual antes de agregar uno nuevo.");
+                const body = document.getElementById(`equipo-body-${equipoCount}`);
+                if (body) body.classList.remove('hidden');
+                return;
             }
-        });
-        if (faltaInformacion) {
-            alert("Por favor, completa todos los campos del equipo actual antes de agregar uno nuevo.");
-            const body = document.getElementById(`equipo-body-${equipoCount}`);
-            if (body) body.classList.remove('hidden');
-            return;
         }
     }
 
@@ -67,124 +281,113 @@ function agregarEquipo() {
 
     equipoCount++;
     const idx = equipoCount;
-    const container = document.getElementById('equiposContainer');
     const div = document.createElement('div');
     div.id = `equipo-${idx}`;
     div.className = 'bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-5';
     div.innerHTML = `
-       <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2 cursor-pointer hover:bg-gray-100 transition-colors" 
-     onclick="toggleEquipo(${idx})">
-    <span>🖥️</span>
-    <span class="font-bold text-gray-900 text-sm">Equipo ${idx}</span>
-    <span class="ml-auto text-xs font-mono bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full" id="badge-${idx}">Sin completar</span>
-    <div class="flex items-center gap-2 ml-2">
-        <span id="flecha-${idx}" class="text-gray-400 text-xs transition-transform">▼</span>
-        ${idx > 1 ? `<button type="button" onclick="event.stopPropagation(); eliminarEquipo(${idx})"
-            class="text-xs text-red-400 hover:text-red-600 border border-red-100 rounded px-2 py-0.5 bg-white transition-colors">✕</button>` : ''}
-    </div>
-</div>
-       <div id="equipo-body-${idx}" class="transition-all">
-    <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-gray-100">
-            <div class="sm:col-span-2">
-                <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Tipo de equipo <span class="text-red-500">*</span></label>
-                <select name="equipos[${idx}][tipo]" id="tipo-${idx}" required onchange="cargarChecklist(${idx})"
-                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
-                    <option value="">— Seleccionar tipo —</option>
-                    <optgroup label="Impresoras">
-                        <option value="impresora_sin_adf">IMPRESORA SIN ADF</option>
-                        <option value="impresora_con_adf">IMPRESORA CON ADF</option>
-                        <option value="impresora_termica">IMPRESORA TÉRMICA</option>
-                    </optgroup>
-                    <optgroup label="Computadores">
-                        <option value="computador_aio">COMPUTADOR ALL IN ONE</option>
-                        <option value="computador_desktop">COMPUTADOR DESKTOP</option>
-                        <option value="computador_notebook">COMPUTADOR NOTEBOOK</option>
-                    </optgroup>
-                </select>
-            </div>
-            <div>
-                <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Marca <span class="text-red-500">*</span></label>
-                <input type="text" name="equipos[${idx}][marca]" required placeholder="Ej: HP"
-                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 transition-all">
-            </div>
-            <div>
-                <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Modelo <span class="text-red-500">*</span></label>
-                <input type="text" name="equipos[${idx}][modelo]" required placeholder="Ej: LaserJet M404"
-                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 transition-all">
-            </div>
-            <div class="sm:col-span-2">
-                <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Número de serie <span class="text-red-500">*</span></label>
-                <input type="text" name="equipos[${idx}][serie]" required placeholder="Ej: VNB3R12345"
-                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 transition-all">
+        <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2 cursor-pointer hover:bg-gray-100 transition-colors"
+             onclick="toggleEquipo(${idx})">
+            <span>🖥️</span>
+            <span class="font-bold text-gray-900 text-sm">Equipo ${idx}</span>
+            <span class="ml-auto text-xs font-mono bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full" id="badge-${idx}">Sin completar</span>
+            <div class="flex items-center gap-2 ml-2">
+                <span id="flecha-${idx}" class="text-gray-400 text-xs transition-transform">▼</span>
+                ${idx > 1 ? `<button type="button" onclick="event.stopPropagation(); eliminarEquipo(${idx})"
+                    class="text-xs text-red-400 hover:text-red-600 border border-red-100 rounded px-2 py-0.5 bg-white transition-colors">✕</button>` : ''}
             </div>
         </div>
-        <div id="checklist-${idx}" class="hidden"></div>
-        <div class="p-5 border-t border-gray-100">
-            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Observaciones <span class="text-red-500">*</span></label>
-            <textarea name="equipos[${idx}][observaciones]" required rows="2"
-                placeholder="Notas técnicas, hallazgos, recomendaciones..."
-                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 transition-all resize-none"></textarea>
+        <div id="equipo-body-${idx}" class="transition-all">
+            <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-gray-100">
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Tipo de equipo <span class="text-red-500">*</span></label>
+                    <select name="equipos[${idx}][tipo]" id="tipo-${idx}" required onchange="cargarChecklist(${idx})"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
+                        <option value="">— Seleccionar tipo —</option>
+                        <optgroup label="Impresoras">
+                            <option value="impresora_sin_adf">IMPRESORA SIN ADF</option>
+                            <option value="impresora_con_adf">IMPRESORA CON ADF</option>
+                            <option value="impresora_termica">IMPRESORA TÉRMICA</option>
+                        </optgroup>
+                        <optgroup label="Computadores">
+                            <option value="computador_aio">COMPUTADOR ALL IN ONE</option>
+                            <option value="computador_desktop">COMPUTADOR DESKTOP</option>
+                            <option value="computador_notebook">COMPUTADOR NOTEBOOK</option>
+                        </optgroup>
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Marca <span class="text-red-500">*</span></label>
+                    <input type="text" name="equipos[${idx}][marca]" required placeholder="Ej: HP"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Modelo <span class="text-red-500">*</span></label>
+                    <input type="text" name="equipos[${idx}][modelo]" required placeholder="Ej: LaserJet M404"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 transition-all">
+                </div>
+                <div class="sm:col-span-2">
+                    <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Número de serie <span class="text-red-500">*</span></label>
+                    <input type="text" name="equipos[${idx}][serie]" required placeholder="Ej: VNB3R12345"
+                        class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 transition-all">
+                </div>
+            </div>
+            <div id="checklist-${idx}" class="hidden"></div>
+            <div class="p-5 border-t border-gray-100">
+                <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Observaciones <span class="text-red-500">*</span></label>
+                <textarea name="equipos[${idx}][observaciones]" required rows="2"
+                    placeholder="Notas técnicas, hallazgos, recomendaciones..."
+                    class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 transition-all resize-none"></textarea>
+            </div>
+            <div class="px-5 pb-5">
+                <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-3">Estado final <span class="text-red-500">*</span></label>
+                <div id="alerta-estado-${idx}" class="hidden mb-3 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-2.5 text-xs flex items-start gap-2">
+                    <span>⚠️</span><span id="alerta-msg-${idx}"></span>
+                </div>
+                <div class="grid grid-cols-3 gap-3">
+                    <label class="cursor-pointer" id="btn-op-${idx}">
+                        <input type="radio" name="equipos[${idx}][estado_final]" value="operativo" class="sr-only peer" onchange="onEstadoChange(${idx})">
+                        <div class="border-2 border-gray-200 rounded-xl p-3 text-center peer-checked:border-green-500 peer-checked:bg-green-50 hover:border-gray-300 transition-all">
+                            <div class="text-xl mb-1">✅</div>
+                            <div class="text-xs font-semibold text-gray-900">Operativo</div>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer" id="btn-obs-${idx}">
+                        <input type="radio" name="equipos[${idx}][estado_final]" value="operativo_con_observaciones" class="sr-only peer" onchange="onEstadoChange(${idx})">
+                        <div class="border-2 border-gray-200 rounded-xl p-3 text-center peer-checked:border-amber-500 peer-checked:bg-amber-50 hover:border-gray-300 transition-all">
+                            <div class="text-xl mb-1">⚠️</div>
+                            <div class="text-xs font-semibold text-gray-900">Operativo c/obs.</div>
+                        </div>
+                    </label>
+                    <label class="cursor-pointer" id="btn-def-${idx}">
+                        <input type="radio" name="equipos[${idx}][estado_final]" value="defectuoso" class="sr-only peer" onchange="onEstadoChange(${idx})">
+                        <div class="border-2 border-gray-200 rounded-xl p-3 text-center peer-checked:border-red-500 peer-checked:bg-red-50 hover:border-gray-300 transition-all">
+                            <div class="text-xl mb-1">❌</div>
+                            <div class="text-xs font-semibold text-gray-900">Defectuoso</div>
+                        </div>
+                    </label>
+                </div>
+            </div>
+            <div class="px-5 pb-5 grid grid-cols-2 gap-4 border-t border-gray-100 pt-4">
+                <div>
+                    <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Foto del equipo <span class="text-red-500">*</span></label>
+                    <input type="file" name="equipos[${idx}][foto_equipo]" accept="image/*" capture="environment"
+                        class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-600 hover:file:bg-red-100 transition-all">
+                </div>
+                <div>
+                    <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Foto número de serie <span class="text-red-500">*</span></label>
+                    <input type="file" name="equipos[${idx}][foto_serie]" accept="image/*" capture="environment"
+                        class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-600 hover:file:bg-red-100 transition-all">
+                </div>
+            </div>
         </div>
-        <div class="px-5 pb-5">
-            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-3">Estado final <span class="text-red-500">*</span></label>
-            <div id="alerta-estado-${idx}" class="hidden mb-3 bg-red-50 border border-red-200 text-red-700 rounded-lg px-4 py-2.5 text-xs flex items-start gap-2">
-                <span>⚠️</span><span id="alerta-msg-${idx}"></span>
-            </div>
-            <div class="grid grid-cols-3 gap-3">
-                <label class="cursor-pointer" id="btn-op-${idx}">
-                    <input type="radio" name="equipos[${idx}][estado_final]" value="operativo" class="sr-only peer" onchange="onEstadoChange(${idx})">
-                    <div class="border-2 border-gray-200 rounded-xl p-3 text-center peer-checked:border-green-500 peer-checked:bg-green-50 hover:border-gray-300 transition-all">
-                        <div class="text-xl mb-1">✅</div>
-                        <div class="text-xs font-semibold text-gray-900">Operativo</div>
-                    </div>
-                </label>
-                <label class="cursor-pointer" id="btn-obs-${idx}">
-                    <input type="radio" name="equipos[${idx}][estado_final]" value="operativo_con_observaciones" class="sr-only peer" onchange="onEstadoChange(${idx})">
-                    <div class="border-2 border-gray-200 rounded-xl p-3 text-center peer-checked:border-amber-500 peer-checked:bg-amber-50 hover:border-gray-300 transition-all">
-                        <div class="text-xl mb-1">⚠️</div>
-                        <div class="text-xs font-semibold text-gray-900">Operativo c/obs.</div>
-                    </div>
-                </label>
-                <label class="cursor-pointer" id="btn-def-${idx}">
-                    <input type="radio" name="equipos[${idx}][estado_final]" value="defectuoso" class="sr-only peer" onchange="onEstadoChange(${idx})">
-                    <div class="border-2 border-gray-200 rounded-xl p-3 text-center peer-checked:border-red-500 peer-checked:bg-red-50 hover:border-gray-300 transition-all">
-                        <div class="text-xl mb-1">❌</div>
-                        <div class="text-xs font-semibold text-gray-900">Defectuoso</div>
-                    </div>
-                </label>
-            </div>
-        </div>
-        <div class="px-5 pb-5 grid grid-cols-2 gap-4 border-t border-gray-100 pt-4">
-            <div>
-                <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Foto del equipo <span class="text-red-500">*</span></label>
-                <input type="file" name="equipos[${idx}][foto_equipo]" accept="image/*" capture="environment"
-                    class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-600 hover:file:bg-red-100 transition-all">
-            </div>
-            <div>
-                <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Foto número de serie <span class="text-red-500">*</span></label>
-                <input type="file" name="equipos[${idx}][foto_serie]" accept="image/*" capture="environment"
-                    class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-600 hover:file:bg-red-100 transition-all">
-            </div>
-        </div>  
-        </div>
-        </div>`;
+    `;
     container.appendChild(div);
-}
-
-function actualizarEstadoFoto(idx, tipo) {
-    const btn   = document.getElementById(`btn-foto-${tipo}-${idx}`);
-    const input = document.getElementById(`file-${tipo}-${idx}`);
-    if (input.files && input.files[0]) {
-        btn.classList.remove('bg-gray-50', 'border-gray-300', 'text-gray-600');
-        btn.classList.add('bg-green-50', 'border-green-500', 'text-green-700');
-        btn.innerHTML = `<span class="text-lg">✅</span><span class="text-xs font-bold uppercase">Foto Lista</span>`;
-        mostrarToast(`Foto de ${tipo} cargada`, 'success');
-    }
 }
 
 function toggleEquipo(idx) {
     const body   = document.getElementById(`equipo-body-${idx}`);
     const flecha = document.getElementById(`flecha-${idx}`);
+    if (!body || !flecha) return;
     if (body.classList.contains('hidden')) {
         body.classList.remove('hidden');
         flecha.textContent = '▼';
@@ -199,34 +402,21 @@ function eliminarEquipo(idx) {
     document.getElementById(`equipo-${idx}`)?.remove();
 }
 
-function guardarEquipo(idx) {
-    const tipo   = document.getElementById(`tipo-${idx}`)?.value;
-    const marca  = document.querySelector(`input[name="equipos[${idx}][marca]"]`)?.value;
-    const modelo = document.querySelector(`input[name="equipos[${idx}][modelo]"]`)?.value;
-    const serie  = document.querySelector(`input[name="equipos[${idx}][serie]"]`)?.value;
-    const estado = document.querySelector(`input[name="equipos[${idx}][estado_final]"]:checked`)?.value;
-    const obs    = document.querySelector(`textarea[name="equipos[${idx}][observaciones]"]`)?.value;
-    if (!tipo || !marca || !modelo || !serie || !estado || !obs) {
-        mostrarToast('Completa todos los campos del equipo antes de guardar.', 'error');
-        return;
-    }
-    const badge = document.getElementById(`badge-${idx}`);
-    badge.textContent = '✓ Guardado';
-    badge.className   = 'ml-auto text-xs font-mono bg-green-100 text-green-700 px-2 py-0.5 rounded-full';
-    mostrarToast(`Equipo ${idx} guardado correctamente.`, 'success');
-}
-
 // ═══════════════════════════════════════
 // CHECKLIST
 // ═══════════════════════════════════════
 function cargarChecklist(idx) {
-    const tipo = document.getElementById(`tipo-${idx}`).value;
+    const tipoEl = document.getElementById(`tipo-${idx}`);
+    if (!tipoEl) return;
+    const tipo = tipoEl.value;
     if (!tipo || !ITEMS[tipo]) return;
+
     const secciones = {};
     ITEMS[tipo].forEach(item => {
         if (!secciones[item.seccion]) secciones[item.seccion] = [];
         secciones[item.seccion].push(item);
     });
+
     let html = '';
     Object.entries(secciones).forEach(([seccion, items]) => {
         html += `<div class="px-5 py-2 bg-gray-50 border-y border-gray-100">
@@ -253,7 +443,9 @@ function cargarChecklist(idx) {
             </div>`;
         });
     });
+
     const checkDiv = document.getElementById(`checklist-${idx}`);
+    if (!checkDiv) return;
     checkDiv.innerHTML = html;
     checkDiv.classList.remove('hidden');
 }
@@ -265,27 +457,33 @@ function onRespuestaChange(idx, valor, esCritico, nombre) {
     if (valor !== 'defectuoso') { recalcularEstado(idx); return; }
     forzarDefectuoso(idx, nombre, esCritico);
 }
-function forzarDefectuoso(idx, nombre, esCritico) {
+function forzarDefectuoso(idx, nombre) {
     const radio = document.querySelector(`input[name="equipos[${idx}][estado_final]"][value="defectuoso"]`);
     if (radio) radio.checked = true;
     bloquearBtn(`btn-op-${idx}`, `"${nombre}" está Defectuoso.`);
     bloquearBtn(`btn-obs-${idx}`, `"${nombre}" está Defectuoso.`);
-    document.getElementById(`alerta-msg-${idx}`).textContent = `Hay ítems marcados como Defectuoso. Estado configurado automáticamente.`;
-    document.getElementById(`alerta-estado-${idx}`).classList.remove('hidden');
+    const alertaMsg    = document.getElementById(`alerta-msg-${idx}`);
+    const alertaEstado = document.getElementById(`alerta-estado-${idx}`);
+    if (alertaMsg)    alertaMsg.textContent = `Hay ítems marcados como Defectuoso. Estado configurado automáticamente.`;
+    if (alertaEstado) alertaEstado.classList.remove('hidden');
     actualizarBadge(idx);
 }
 function bloquearBtn(btnId, msg) {
     const label = document.getElementById(btnId);
     if (!label) return;
-    label.querySelector('div').style.opacity = '0.4';
-    label.querySelector('input').disabled = true;
+    const div   = label.querySelector('div');
+    const input = label.querySelector('input');
+    if (div)   div.style.opacity = '0.4';
+    if (input) input.disabled = true;
     label.onclick = (e) => { e.preventDefault(); mostrarToast(msg, 'error'); };
 }
 function desbloquearBtn(btnId) {
     const label = document.getElementById(btnId);
     if (!label) return;
-    label.querySelector('div').style.opacity = '1';
-    label.querySelector('input').disabled = false;
+    const div   = label.querySelector('div');
+    const input = label.querySelector('input');
+    if (div)   div.style.opacity = '1';
+    if (input) input.disabled = false;
     label.onclick = null;
 }
 function recalcularEstado(idx) {
@@ -299,7 +497,8 @@ function recalcularEstado(idx) {
     if (!hayDefectuoso) {
         desbloquearBtn(`btn-op-${idx}`);
         desbloquearBtn(`btn-obs-${idx}`);
-        document.getElementById(`alerta-estado-${idx}`).classList.add('hidden');
+        const alertaEstado = document.getElementById(`alerta-estado-${idx}`);
+        if (alertaEstado) alertaEstado.classList.add('hidden');
         const radio = document.querySelector(`input[name="equipos[${idx}][estado_final]"][value="defectuoso"]`);
         if (radio?.checked) radio.checked = false;
     }
@@ -324,7 +523,8 @@ let firmaCtx, firmaModalCtx;
 let firmaModalLastX = 0, firmaModalLastY = 0;
 
 function initFirma() {
-    const canvas  = document.getElementById('firmaCanvas');
+    const canvas = document.getElementById('firmaCanvas');
+    if (!canvas) return;
     canvas.width  = canvas.offsetWidth;
     canvas.height = canvas.offsetHeight || 100;
     firmaCtx      = canvas.getContext('2d');
@@ -334,6 +534,7 @@ function initFirma() {
     );
 }
 function setupCanvas(canvas, ctx, onStart, onMove) {
+    if (!canvas || !ctx) return;
     const getPos = (e) => {
         const rect   = canvas.getBoundingClientRect();
         const scaleX = canvas.width  / rect.width;
@@ -351,25 +552,30 @@ function setupCanvas(canvas, ctx, onStart, onMove) {
     canvas.addEventListener('touchend',   () => drawing=false);
 }
 function drawLine(ctx, x1, y1, x2, y2) {
+    if (!ctx) return;
     ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
     ctx.strokeStyle='#1f2937'; ctx.lineWidth=2; ctx.lineCap='round'; ctx.stroke();
 }
 function limpiarFirma() {
     const canvas = document.getElementById('firmaCanvas');
+    if (!canvas || !firmaCtx) return;
     firmaCtx.clearRect(0, 0, canvas.width, canvas.height);
-    document.getElementById('firmaData').value = '';
+    const firmaData = document.getElementById('firmaData');
+    if (firmaData) firmaData.value = '';
 }
 function abrirModalFirma() {
     const modal = document.getElementById('modalFirma');
+    if (!modal) return;
     modal.classList.remove('hidden');
     modal.classList.add('flex');
     setTimeout(() => {
-        const canvas  = document.getElementById('firmaModalCanvas');
+        const canvas = document.getElementById('firmaModalCanvas');
+        if (!canvas) return;
         canvas.width  = canvas.offsetWidth;
         canvas.height = canvas.offsetHeight || 220;
         firmaModalCtx = canvas.getContext('2d');
         const src = document.getElementById('firmaCanvas');
-        if (src) firmaModalCtx.drawImage(src, 0, 0, canvas.width, canvas.height);
+        if (src && firmaModalCtx) firmaModalCtx.drawImage(src, 0, 0, canvas.width, canvas.height);
         setupCanvas(canvas, firmaModalCtx,
             (x,y) => { firmaModalLastX=x; firmaModalLastY=y; },
             (x,y) => { drawLine(firmaModalCtx, firmaModalLastX, firmaModalLastY, x, y); firmaModalLastX=x; firmaModalLastY=y; }
@@ -378,28 +584,37 @@ function abrirModalFirma() {
 }
 function limpiarFirmaModal() {
     const canvas = document.getElementById('firmaModalCanvas');
+    if (!canvas || !firmaModalCtx) return;
     firmaModalCtx.clearRect(0, 0, canvas.width, canvas.height);
 }
 function guardarFirmaModal() {
     const modalCanvas = document.getElementById('firmaModalCanvas');
     const mainCanvas  = document.getElementById('firmaCanvas');
+    if (!modalCanvas || !mainCanvas || !firmaCtx) return;
     firmaCtx.clearRect(0, 0, mainCanvas.width, mainCanvas.height);
     firmaCtx.drawImage(modalCanvas, 0, 0, mainCanvas.width, mainCanvas.height);
-    document.getElementById('firmaData').value = mainCanvas.toDataURL('image/png');
+    const firmaData = document.getElementById('firmaData');
+    if (firmaData) firmaData.value = mainCanvas.toDataURL('image/png');
     cerrarModalFirma();
 }
 function cerrarModalFirma() {
     const modal = document.getElementById('modalFirma');
+    if (!modal) return;
     modal.classList.add('hidden');
     modal.classList.remove('flex');
 }
-document.getElementById('modalFirma').addEventListener('click', function(e) {
-    if (e.target === this) cerrarModalFirma();
-});
+const modalFirmaEl = document.getElementById('modalFirma');
+if (modalFirmaEl) {
+    modalFirmaEl.addEventListener('click', function(e) {
+        if (e.target === this) cerrarModalFirma();
+    });
+}
 function firmaEstaVacia() {
     const canvas = document.getElementById('firmaCanvas');
-    const ctx    = canvas.getContext('2d');
-    const data   = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    if (!canvas) return true;
+    const ctx  = canvas.getContext('2d');
+    if (!ctx) return true;
+    const data = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
     for (let i = 3; i < data.length; i += 4) {
         if (data[i] > 0) return false;
     }
@@ -410,15 +625,13 @@ function firmaEstaVacia() {
 // CONVERTIR WEBP → JPEG EN FRONTEND
 // ═══════════════════════════════════════
 async function convertirImagenesWebp(form) {
+    if (!form) return;
     const fileInputs = form.querySelectorAll('input[type="file"]');
     for (const input of fileInputs) {
         if (!input.files.length) continue;
         const archivos = [];
         for (const file of input.files) {
-            if (file.type !== 'image/webp') {
-                archivos.push(file);
-                continue;
-            }
+            if (file.type !== 'image/webp') { archivos.push(file); continue; }
             const convertido = await new Promise((resolve) => {
                 const img = new Image();
                 const url = URL.createObjectURL(file);
@@ -452,6 +665,7 @@ async function convertirImagenesWebp(form) {
 // ═══════════════════════════════════════
 async function enviarFormulario() {
     const form = document.getElementById('formChecklist');
+    if (!form) return;
     form.removeAttribute('novalidate');
 
     if (firmaEstaVacia()) {
@@ -460,17 +674,15 @@ async function enviarFormulario() {
         return;
     }
 
-    const canvas = document.getElementById('firmaCanvas');
-    document.getElementById('firmaData').value = canvas.toDataURL('image/png');
+    const canvas    = document.getElementById('firmaCanvas');
+    const firmaData = document.getElementById('firmaData');
+    if (canvas && firmaData) firmaData.value = canvas.toDataURL('image/png');
 
     if (form.reportValidity()) {
         const btn = document.getElementById('btnEnviar');
-        btn.disabled = true;
-        btn.innerHTML = '⏳ Procesando imágenes...';
-
+        if (btn) { btn.disabled = true; btn.innerHTML = '⏳ Procesando imágenes...'; }
         await convertirImagenesWebp(form);
-
-        btn.innerHTML = '⏳ Enviando Orden Final...';
+        if (btn) btn.innerHTML = '⏳ Enviando Orden Final...';
         form.action = '{{ route("mantencion.store") }}';
         form.submit();
     }
@@ -484,9 +696,9 @@ async function guardarParcial() {
         mostrarToast('No puedes guardar parcialmente cuando ya hay una firma.', 'error');
         return;
     }
-
     const form = document.getElementById('formChecklist');
     const btn  = document.getElementById('btnParcial');
+    if (!form || !btn) return;
 
     form.action     = '{{ route("mantencion.store.parcial") }}';
     form.noValidate = true;
@@ -496,5 +708,11 @@ async function guardarParcial() {
     await convertirImagenesWebp(form);
 
     btn.innerHTML = '⏳ Guardando progreso...';
-
-    if (typeof form.requestSubmit === 'fun
+    if (typeof form.requestSubmit === 'function') {
+        form.requestSubmit();
+    } else {
+        form.submit();
+    }
+}
+</script>
+@endpush
