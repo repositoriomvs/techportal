@@ -1,216 +1,3 @@
-@extends('layouts.app')
-
-@section('title', 'Nueva Orden de Mantención')
-@section('page-title', 'Nueva Orden de Mantención')
-@section('page-subtitle', 'Mantención preventiva · Todos los campos son obligatorios')
-
-@section('topbar-actions')
-    <a href="{{ route('mantencion.index') }}"
-       class="text-sm text-gray-500 hover:text-gray-700 border border-gray-200 px-4 py-2 rounded-lg transition-colors">
-        ← Volver
-    </a>
-@endsection
-
-@section('content')
-
-{{-- BLOQUE DE ERRORES --}}
-@if ($errors->any())
-    <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl px-5 py-4 mb-5 text-sm">
-        <strong>Por favor corrige los siguientes errores:</strong>
-        <ul class="mt-2 list-disc list-inside">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
-
-<form id="formChecklist" method="POST" action="{{ route('mantencion.store') }}" enctype="multipart/form-data">
-@csrf
-
-{{-- DATOS DEL SERVICIO --}}
-<div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-5">
-    <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-        <span>📋</span>
-        <span class="font-bold text-gray-900 text-sm">1. Datos del Servicio</span>
-    </div>
-    <div class="p-5 grid grid-cols-1 sm:grid-cols-3 gap-4">
-        <div>
-            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Fecha <span class="text-red-500">*</span></label>
-            <input type="text" name="fecha_display" id="fechaHoy" readonly
-                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50 text-gray-500 cursor-not-allowed select-none focus:outline-none">
-            <input type="hidden" name="fecha" id="fechaReal">
-        </div>
-        <div>
-            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Hora inicio <span class="text-red-500">*</span></label>
-            <input type="text" name="hora_inicio" id="horaInicio" readonly
-                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50 text-gray-500 cursor-not-allowed select-none focus:outline-none">
-        </div>
-        <div>
-            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Hora término</label>
-            <input type="text" readonly
-                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50 text-gray-400 cursor-not-allowed select-none focus:outline-none"
-                placeholder="Se registra al enviar">
-        </div>
-    </div>
-</div>
-
-{{-- DATOS DEL CLIENTE --}}
-<div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-5">
-    <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-        <span>🏢</span>
-        <span class="font-bold text-gray-900 text-sm">2. Datos del Cliente</span>
-    </div>
-    <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div class="sm:col-span-2">
-            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Cliente <span class="text-red-500">*</span></label>
-            <select name="cliente_id" required
-                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
-                <option value="">— Seleccionar cliente —</option>
-                @foreach($clientes as $cliente)
-                    <option value="{{ $cliente->id }}">{{ $cliente->nombre }}</option>
-                @endforeach
-            </select>
-        </div>
-        <div>
-            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Código local <span class="text-red-500">*</span></label>
-            <input type="text" name="codigo_local" required placeholder="Ej: LOC-001"
-                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
-        </div>
-        <div>
-            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Ciudad <span class="text-red-500">*</span></label>
-            <input type="text" name="ciudad" required placeholder="Ej: Santiago"
-                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
-        </div>
-        <div class="sm:col-span-2">
-            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Dirección <span class="text-red-500">*</span></label>
-            <input type="text" name="direccion" required placeholder="Ej: Av. Providencia 1234"
-                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
-        </div>
-    </div>
-</div>
-
-{{-- EQUIPOS --}}
-<div id="equiposContainer"></div>
-{{-- EQUIPOS --}}
-<div id="equiposContainer"></div>
-
-{{-- BOTÓN AGREGAR (AFUERA) --}}
-<div class="mb-5">
-    <button type="button" onclick="agregarEquipo()"
-        class="w-full flex items-center justify-center gap-2 bg-white border-2 border-dashed border-gray-300 hover:border-red-400 text-gray-500 hover:text-red-600 rounded-xl py-4 text-sm font-bold transition-all shadow-sm group">
-        <span class="text-lg group-hover:scale-125 transition-transform">➕</span> 
-        Agregar un nuevo equipo a la orden
-    </button>
-</div>
-
-{{-- FIRMA --}}
-<div class="bg-white border border-gray-200 rounded-xl shadow-sm ...">
-{{-- FIRMA --}}
-<div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-5">
-    <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
-        <span>✍️</span>
-        <span class="font-bold text-gray-900 text-sm">Recepción del Servicio</span>
-    </div>
-    <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-        <div>
-            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Nombre receptor <span class="text-red-500">*</span></label>
-            <input type="text" name="firma_nombre" id="firma_nombre" required placeholder="Nombre completo"
-                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
-        </div>
-        <div>
-            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Cargo <span class="text-red-500">*</span></label>
-            <input type="text" name="firma_cargo" id="firma_cargo" required placeholder="Cargo del receptor"
-                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
-        </div>
-        <div class="sm:col-span-2">
-            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Firma <span class="text-red-500">*</span></label>
-            <div class="border border-gray-200 rounded-lg p-3 bg-gray-50">
-                <div class="border-2 border-dashed border-gray-300 rounded-lg overflow-hidden bg-white mb-2" style="touch-action:none; height:100px;">
-                    <canvas id="firmaCanvas" class="w-full h-full block cursor-crosshair"></canvas>
-                </div>
-                <div class="flex items-center justify-between">
-                    <span class="text-xs text-gray-400">Dibuja la firma con el dedo o mouse</span>
-                    <div class="flex gap-2">
-                        <button type="button" onclick="limpiarFirma()"
-                            class="text-xs text-gray-400 hover:text-red-500 border border-gray-200 px-3 py-1 rounded transition-colors">
-                            🗑 Limpiar
-                        </button>
-                        <button type="button" onclick="abrirModalFirma()"
-                            class="text-xs text-gray-600 hover:text-gray-800 border border-gray-300 px-3 py-1 rounded transition-colors">
-                            ⛶ Ampliar
-                        </button>
-                    </div>
-                </div>
-            </div>
-            <input type="hidden" name="firma_imagen" id="firmaData">
-        </div>
-    </div>
-</div>
-
-{{-- ACCIONES --}}
-<div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
-    <div class="p-5 flex flex-col sm:flex-row gap-3">
-
-        {{-- Enviar orden completa --}}
-        <button type="button" onclick="enviarFormulario()" id="btnEnviar"
-            class="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg text-sm transition-colors shadow-sm">
-            📤 Enviar Orden
-        </button>
-
-        {{-- ✅ Guardado parcial --}}
-        <button type="button" onclick="guardarParcial()" id="btnParcial"
-            class="flex-1 flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 rounded-lg text-sm transition-colors shadow-sm">
-            💾 Guardado Parcial
-        </button>
-
-        <a href="{{ route('mantencion.index') }}"
-            class="flex-1 flex items-center justify-center gap-2 border border-gray-300 hover:border-gray-400 text-gray-600 font-semibold py-3 rounded-lg text-sm transition-colors">
-            Cancelar
-        </a>
-    </div>
-    <div class="px-5 pb-4 text-center">
-        <p class="text-xs text-gray-400 font-mono">
-            📤 Enviar Orden requiere firma del receptor ·
-            💾 Guardado Parcial guarda sin firma para continuar después
-        </p>
-    </div>
-</div>
-
-</form>
-
-{{-- MODAL FIRMA AMPLIADA --}}
-<div id="modalFirma" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4">
-    <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
-        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
-            <div class="font-bold text-gray-900">✍️ Firma del receptor</div>
-            <div class="flex gap-2">
-                <button type="button" onclick="limpiarFirmaModal()"
-                    class="text-sm text-gray-500 hover:text-red-500 border border-gray-200 px-3 py-1.5 rounded-lg transition-colors">
-                    🗑 Limpiar
-                </button>
-                <button type="button" onclick="guardarFirmaModal()"
-                    class="text-sm bg-red-600 hover:bg-red-700 text-white font-semibold px-4 py-1.5 rounded-lg transition-colors">
-                    ✓ Guardar firma
-                </button>
-            </div>
-        </div>
-        <div class="p-5">
-            <div class="border-2 border-dashed border-gray-300 rounded-xl overflow-hidden bg-gray-50" style="touch-action:none; height:220px;">
-                <canvas id="firmaModalCanvas" class="w-full h-full block cursor-crosshair"></canvas>
-            </div>
-            <p class="text-xs text-gray-400 text-center mt-2">Dibuja la firma con el dedo o mouse</p>
-        </div>
-    </div>
-</div>
-
-{{-- TOAST --}}
-<div id="toast" class="fixed bottom-6 right-6 z-50 hidden">
-    <div id="toastInner" class="px-5 py-3 rounded-xl shadow-lg text-sm font-semibold flex items-center gap-2"></div>
-</div>
-
-@endsection
-
 @push('scripts')
 <script>
 const ITEMS = @json($items);
@@ -245,46 +32,42 @@ document.addEventListener('DOMContentLoaded', () => {
 
     agregarEquipo();
     initFirma();
+
+    @if ($errors->any())
+        window.scrollTo({ top: 0, behavior: 'smooth' });
+    @endif
 });
 
 // ═══════════════════════════════════════
 // EQUIPOS
 // ═══════════════════════════════════════
 function agregarEquipo() {
-    // 1. VALIDACIÓN: Si ya hay equipos, revisamos el último creado
     if (equipoCount > 0) {
         const ultimoEquipo = document.getElementById(`equipo-${equipoCount}`);
-        // Buscamos todos los inputs, selects y textareas requeridos del último equipo
         const camposIncompletos = ultimoEquipo.querySelectorAll('input[required], select[required], textarea[required]');
-        
         let faltaInformacion = false;
         camposIncompletos.forEach(campo => {
             if (!campo.value.trim()) {
                 faltaInformacion = true;
-                campo.classList.add('border-red-500'); // Opcional: marca el error en rojo
+                campo.classList.add('border-red-500');
             } else {
                 campo.classList.remove('border-red-500');
             }
         });
-
         if (faltaInformacion) {
             alert("Por favor, completa todos los campos del equipo actual antes de agregar uno nuevo.");
-            // Si está minimizado, lo abrimos para que el técnico vea qué falta
             const body = document.getElementById(`equipo-body-${equipoCount}`);
             if (body) body.classList.remove('hidden');
-            return; // Detiene la ejecución: no se agrega el nuevo equipo
+            return;
         }
     }
 
-    // 2. Si pasó la validación, procedemos con tu lógica de minimizado
     document.querySelectorAll('[id^="equipo-body-"]').forEach(el => el.classList.add('hidden'));
     document.querySelectorAll('[id^="flecha-"]').forEach(el => el.innerText = '►');
 
-    // ... el resto de tu código (equipoCount++, innerHTML, etc.)
     equipoCount++;
     const idx = equipoCount;
     const container = document.getElementById('equiposContainer');
-    document.querySelectorAll('[id^="equipo-body-"]').forEach(el => el.classList.add('hidden'));
     const div = document.createElement('div');
     div.id = `equipo-${idx}`;
     div.className = 'bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-5';
@@ -294,7 +77,6 @@ function agregarEquipo() {
     <span>🖥️</span>
     <span class="font-bold text-gray-900 text-sm">Equipo ${idx}</span>
     <span class="ml-auto text-xs font-mono bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full" id="badge-${idx}">Sin completar</span>
-    
     <div class="flex items-center gap-2 ml-2">
         <span id="flecha-${idx}" class="text-gray-400 text-xs transition-transform">▼</span>
         ${idx > 1 ? `<button type="button" onclick="event.stopPropagation(); eliminarEquipo(${idx})"
@@ -389,28 +171,20 @@ function agregarEquipo() {
     container.appendChild(div);
 }
 
-
 function actualizarEstadoFoto(idx, tipo) {
-    const btn = document.getElementById(`btn-foto-${tipo}-${idx}`);
+    const btn   = document.getElementById(`btn-foto-${tipo}-${idx}`);
     const input = document.getElementById(`file-${tipo}-${idx}`);
-
     if (input.files && input.files[0]) {
-        // Cambiamos el estilo del botón a "Cargado"
         btn.classList.remove('bg-gray-50', 'border-gray-300', 'text-gray-600');
         btn.classList.add('bg-green-50', 'border-green-500', 'text-green-700');
-        btn.innerHTML = `
-            <span class="text-lg">✅</span>
-            <span class="text-xs font-bold uppercase">Foto Lista</span>
-        `;
-        
-        // Opcional: mostrar un Toast de éxito
+        btn.innerHTML = `<span class="text-lg">✅</span><span class="text-xs font-bold uppercase">Foto Lista</span>`;
         mostrarToast(`Foto de ${tipo} cargada`, 'success');
     }
 }
+
 function toggleEquipo(idx) {
-    const body = document.getElementById(`equipo-body-${idx}`);
+    const body   = document.getElementById(`equipo-body-${idx}`);
     const flecha = document.getElementById(`flecha-${idx}`);
-    
     if (body.classList.contains('hidden')) {
         body.classList.remove('hidden');
         flecha.textContent = '▼';
@@ -432,23 +206,13 @@ function guardarEquipo(idx) {
     const serie  = document.querySelector(`input[name="equipos[${idx}][serie]"]`)?.value;
     const estado = document.querySelector(`input[name="equipos[${idx}][estado_final]"]:checked`)?.value;
     const obs    = document.querySelector(`textarea[name="equipos[${idx}][observaciones]"]`)?.value;
-
     if (!tipo || !marca || !modelo || !serie || !estado || !obs) {
         mostrarToast('Completa todos los campos del equipo antes de guardar.', 'error');
         return;
     }
-
     const badge = document.getElementById(`badge-${idx}`);
     badge.textContent = '✓ Guardado';
-    badge.className = 'ml-auto text-xs font-mono bg-green-100 text-green-700 px-2 py-0.5 rounded-full';
-
-    const btnGuardar = document.querySelector(`#equipo-${idx} button[onclick="guardarEquipo(${idx})"]`);
-    if (btnGuardar) {
-        btnGuardar.disabled = true;
-        btnGuardar.innerHTML = '✓ Equipo guardado';
-        btnGuardar.className = 'flex-1 flex items-center justify-center gap-2 bg-green-600 text-white font-semibold py-2.5 rounded-lg text-sm cursor-not-allowed opacity-75';
-    }
-
+    badge.className   = 'ml-auto text-xs font-mono bg-green-100 text-green-700 px-2 py-0.5 rounded-full';
     mostrarToast(`Equipo ${idx} guardado correctamente.`, 'success');
 }
 
@@ -458,13 +222,11 @@ function guardarEquipo(idx) {
 function cargarChecklist(idx) {
     const tipo = document.getElementById(`tipo-${idx}`).value;
     if (!tipo || !ITEMS[tipo]) return;
-
     const secciones = {};
     ITEMS[tipo].forEach(item => {
         if (!secciones[item.seccion]) secciones[item.seccion] = [];
         secciones[item.seccion].push(item);
     });
-
     let html = '';
     Object.entries(secciones).forEach(([seccion, items]) => {
         html += `<div class="px-5 py-2 bg-gray-50 border-y border-gray-100">
@@ -491,7 +253,6 @@ function cargarChecklist(idx) {
             </div>`;
         });
     });
-
     const checkDiv = document.getElementById(`checklist-${idx}`);
     checkDiv.innerHTML = html;
     checkDiv.classList.remove('hidden');
@@ -504,7 +265,6 @@ function onRespuestaChange(idx, valor, esCritico, nombre) {
     if (valor !== 'defectuoso') { recalcularEstado(idx); return; }
     forzarDefectuoso(idx, nombre, esCritico);
 }
-
 function forzarDefectuoso(idx, nombre, esCritico) {
     const radio = document.querySelector(`input[name="equipos[${idx}][estado_final]"][value="defectuoso"]`);
     if (radio) radio.checked = true;
@@ -514,7 +274,6 @@ function forzarDefectuoso(idx, nombre, esCritico) {
     document.getElementById(`alerta-estado-${idx}`).classList.remove('hidden');
     actualizarBadge(idx);
 }
-
 function bloquearBtn(btnId, msg) {
     const label = document.getElementById(btnId);
     if (!label) return;
@@ -522,7 +281,6 @@ function bloquearBtn(btnId, msg) {
     label.querySelector('input').disabled = true;
     label.onclick = (e) => { e.preventDefault(); mostrarToast(msg, 'error'); };
 }
-
 function desbloquearBtn(btnId) {
     const label = document.getElementById(btnId);
     if (!label) return;
@@ -530,7 +288,6 @@ function desbloquearBtn(btnId) {
     label.querySelector('input').disabled = false;
     label.onclick = null;
 }
-
 function recalcularEstado(idx) {
     const tipo = document.getElementById(`tipo-${idx}`)?.value;
     if (!tipo || !ITEMS[tipo]) return;
@@ -548,9 +305,7 @@ function recalcularEstado(idx) {
     }
     actualizarBadge(idx);
 }
-
 function onEstadoChange(idx) { actualizarBadge(idx); }
-
 function actualizarBadge(idx) {
     const badge   = document.getElementById(`badge-${idx}`);
     if (!badge) return;
@@ -578,7 +333,6 @@ function initFirma() {
         (x,y) => { drawLine(firmaCtx, firmaCtx._lastX, firmaCtx._lastY, x, y); firmaCtx._lastX=x; firmaCtx._lastY=y; }
     );
 }
-
 function setupCanvas(canvas, ctx, onStart, onMove) {
     const getPos = (e) => {
         const rect   = canvas.getBoundingClientRect();
@@ -596,18 +350,15 @@ function setupCanvas(canvas, ctx, onStart, onMove) {
     canvas.addEventListener('touchmove',  e => { e.preventDefault(); if(!drawing) return; const p=getPos(e); onMove(p.x,p.y); }, {passive:false});
     canvas.addEventListener('touchend',   () => drawing=false);
 }
-
 function drawLine(ctx, x1, y1, x2, y2) {
     ctx.beginPath(); ctx.moveTo(x1,y1); ctx.lineTo(x2,y2);
     ctx.strokeStyle='#1f2937'; ctx.lineWidth=2; ctx.lineCap='round'; ctx.stroke();
 }
-
 function limpiarFirma() {
     const canvas = document.getElementById('firmaCanvas');
     firmaCtx.clearRect(0, 0, canvas.width, canvas.height);
     document.getElementById('firmaData').value = '';
 }
-
 function abrirModalFirma() {
     const modal = document.getElementById('modalFirma');
     modal.classList.remove('hidden');
@@ -625,12 +376,10 @@ function abrirModalFirma() {
         );
     }, 50);
 }
-
 function limpiarFirmaModal() {
     const canvas = document.getElementById('firmaModalCanvas');
     firmaModalCtx.clearRect(0, 0, canvas.width, canvas.height);
 }
-
 function guardarFirmaModal() {
     const modalCanvas = document.getElementById('firmaModalCanvas');
     const mainCanvas  = document.getElementById('firmaCanvas');
@@ -639,26 +388,63 @@ function guardarFirmaModal() {
     document.getElementById('firmaData').value = mainCanvas.toDataURL('image/png');
     cerrarModalFirma();
 }
-
 function cerrarModalFirma() {
     const modal = document.getElementById('modalFirma');
     modal.classList.add('hidden');
     modal.classList.remove('flex');
 }
-
 document.getElementById('modalFirma').addEventListener('click', function(e) {
     if (e.target === this) cerrarModalFirma();
 });
-
-// ✅ Verificar si el canvas de firma tiene trazos
 function firmaEstaVacia() {
     const canvas = document.getElementById('firmaCanvas');
     const ctx    = canvas.getContext('2d');
     const data   = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
     for (let i = 3; i < data.length; i += 4) {
-        if (data[i] > 0) return false; // hay píxeles con alpha > 0
+        if (data[i] > 0) return false;
     }
     return true;
+}
+
+// ═══════════════════════════════════════
+// CONVERTIR WEBP → JPEG EN FRONTEND
+// ═══════════════════════════════════════
+async function convertirImagenesWebp(form) {
+    const fileInputs = form.querySelectorAll('input[type="file"]');
+    for (const input of fileInputs) {
+        if (!input.files.length) continue;
+        const archivos = [];
+        for (const file of input.files) {
+            if (file.type !== 'image/webp') {
+                archivos.push(file);
+                continue;
+            }
+            const convertido = await new Promise((resolve) => {
+                const img = new Image();
+                const url = URL.createObjectURL(file);
+                img.onload = () => {
+                    const canvas = document.createElement('canvas');
+                    canvas.width  = img.width;
+                    canvas.height = img.height;
+                    canvas.getContext('2d').drawImage(img, 0, 0);
+                    canvas.toBlob((blob) => {
+                        const nuevoArchivo = new File(
+                            [blob],
+                            file.name.replace(/\.webp$/i, '.jpg'),
+                            { type: 'image/jpeg' }
+                        );
+                        URL.revokeObjectURL(url);
+                        resolve(nuevoArchivo);
+                    }, 'image/jpeg', 0.9);
+                };
+                img.src = url;
+            });
+            archivos.push(convertido);
+        }
+        const dt = new DataTransfer();
+        archivos.forEach(f => dt.items.add(f));
+        input.files = dt.files;
+    }
 }
 
 // ═══════════════════════════════════════
@@ -682,46 +468,17 @@ async function enviarFormulario() {
         btn.disabled = true;
         btn.innerHTML = '⏳ Procesando imágenes...';
 
-        await convertirImagenesWebp(form); // ← convierte WebP antes de enviar
+        await convertirImagenesWebp(form);
 
         btn.innerHTML = '⏳ Enviando Orden Final...';
         form.action = '{{ route("mantencion.store") }}';
         form.submit();
     }
 }
-// ... (aquí termina tu función firmaEstaVacia)
 
 // ═══════════════════════════════════════
-// ✅ ENVÍO FINAL (Agrégala aquí)
+// GUARDADO PARCIAL
 // ═══════════════════════════════════════
-function enviarFormulario() {
-    const form = document.getElementById('formChecklist');
-    
-    // 1. Quitar la desactivación de validación por si se usó el parcial antes
-    form.removeAttribute('novalidate');
-
-    // 2. Validar firma (Obligatoria para finalizar)
-    if (firmaEstaVacia()) {
-        mostrarToast('La firma del receptor es obligatoria para finalizar la orden.', 'error');
-        abrirModalFirma();
-        return;
-    }
-
-    // 3. Pasar la firma del canvas al input hidden
-    const canvas = document.getElementById('firmaCanvas');
-    document.getElementById('firmaData').value = canvas.toDataURL('image/png');
-
-    // 4. Disparar validación nativa de HTML5 (required)
-    if (form.reportValidity()) {
-        const btn = document.getElementById('btnEnviar');
-        btn.disabled = true;
-        btn.innerHTML = '⏳ Enviando Orden Final...';
-        
-        // Aseguramos que vaya a la ruta de guardado definitivo
-        form.action = '{{ route("mantencion.store") }}';
-        form.submit();
-    }
-}
 async function guardarParcial() {
     if (!firmaEstaVacia()) {
         mostrarToast('No puedes guardar parcialmente cuando ya hay una firma.', 'error');
@@ -731,97 +488,13 @@ async function guardarParcial() {
     const form = document.getElementById('formChecklist');
     const btn  = document.getElementById('btnParcial');
 
-    form.action    = '{{ route("mantencion.store.parcial") }}';
+    form.action     = '{{ route("mantencion.store.parcial") }}';
     form.noValidate = true;
-    btn.disabled   = true;
-    btn.innerHTML  = '⏳ Procesando imágenes...';
+    btn.disabled    = true;
+    btn.innerHTML   = '⏳ Procesando imágenes...';
 
-    await convertirImagenesWebp(form); // ← convierte WebP antes de guardar
+    await convertirImagenesWebp(form);
 
     btn.innerHTML = '⏳ Guardando progreso...';
 
-    if (typeof form.requestSubmit === 'function') {
-        form.requestSubmit();
-    } else {
-        form.submit();
-    }
-}
-// ═══════════════════════════════════════
-// ✅ MODIFICACIÓN AL GUARDADO PARCIAL
-// ═══════════════════════════════════════
-// Reemplaza tu función guardarParcial() actual con esta para incluir el 'novalidate'
-function guardarParcial() {
-    if (!firmaEstaVacia()) {
-        mostrarToast('No puedes guardar parcialmente cuando ya hay una firma.', 'error');
-        return;
-    }
-
-    const form = document.getElementById('formChecklist');
-    const btn = document.getElementById('btnParcial');
-
-    // 1. Cambiamos el action y desactivamos validación
-    form.action = '{{ route("mantencion.store.parcial") }}';
-    form.noValidate = true; // Forma directa de JS para novalidate
-
-    btn.disabled = true;
-    btn.innerHTML = '⏳ Guardando progreso...';
-
-    // 2. Usamos requestSubmit() en lugar de submit()
-    // Esto asegura que el formulario procese los cambios de atributos antes de salir
-    if (typeof form.requestSubmit === "function") {
-        form.requestSubmit();
-    } else {
-        form.submit();
-    }
-}
-</script>
-@if ($errors->any())
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-    // ═══════════════════════════════════════
-// CONVERTIR WEBP → JPEG EN FRONTEND
-// ═══════════════════════════════════════
-async function convertirImagenesWebp(form) {
-    const fileInputs = form.querySelectorAll('input[type="file"]');
-    for (const input of fileInputs) {
-        if (!input.files.length) continue;
-        const archivos = [];
-        for (const file of input.files) {
-            if (file.type !== 'image/webp') {
-                archivos.push(file);
-                continue;
-            }
-            // Convertir WebP a JPEG con Canvas
-            const convertido = await new Promise((resolve) => {
-                const img = new Image();
-                const url = URL.createObjectURL(file);
-                img.onload = () => {
-                    const canvas = document.createElement('canvas');
-                    canvas.width  = img.width;
-                    canvas.height = img.height;
-                    canvas.getContext('2d').drawImage(img, 0, 0);
-                    canvas.toBlob((blob) => {
-                        const nuevoArchivo = new File(
-                            [blob],
-                            file.name.replace(/\.webp$/i, '.jpg'),
-                            { type: 'image/jpeg' }
-                        );
-                        URL.revokeObjectURL(url);
-                        resolve(nuevoArchivo);
-                    }, 'image/jpeg', 0.9);
-                };
-                img.src = url;
-            });
-            archivos.push(convertido);
-        }
-        // Reemplazar archivos en el input
-        const dt = new DataTransfer();
-        archivos.forEach(f => dt.items.add(f));
-        input.files = dt.files;
-    }
-}
-</script>
-@endif
-@endpush
+    if (typeof form.requestSubmit === 'fun
