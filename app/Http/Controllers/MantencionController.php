@@ -55,26 +55,28 @@ class MantencionController extends Controller
     }
 
     // ── GUARDAR COMPLETO ──────────────────────────────────
-    public function store(Request $request)
-    {
-        $request->validate([
-            'cliente_id'              => 'required|exists:clientes,id',
-            'fecha'                   => 'required|date',
-            'hora_inicio'             => 'required',
-            'codigo_local'            => 'required|string',
-            'direccion'               => 'required|string',
-            'ciudad'                  => 'required|string',
-            'firma_nombre'            => 'required|string',
-            'firma_cargo'             => 'required|string',
-            'firma_imagen'            => 'required|string',
-            'equipos'                 => 'required|array|min:1',
-            'equipos.*.tipo'          => 'required|string',
-            'equipos.*.marca'         => 'required|string',
-            'equipos.*.modelo'        => 'required|string',
-            'equipos.*.serie'         => 'required|string',
-            'equipos.*.observaciones' => 'required|string',
-            'equipos.*.estado_final'  => 'required|string',
-        ]);
+ public function store(Request $request)
+{
+    $request->validate([
+        'cliente_id'              => 'required|exists:clientes,id',
+        'fecha'                   => 'required|date',
+        'hora_inicio'             => 'required',
+        'codigo_local'            => 'required|string',
+        'direccion'               => 'required|string',
+        'ciudad'                  => 'required|string',
+        'firma_nombre'            => 'required|string',
+        'firma_cargo'             => 'required|string',
+        'firma_imagen'            => 'required|string',
+        'equipos'                 => 'required|array|min:1',
+        'equipos.*.tipo'          => 'required|string',
+        'equipos.*.marca'         => 'required|string',
+        'equipos.*.modelo'        => 'required|string',
+        'equipos.*.serie'         => 'required|string',
+        'equipos.*.observaciones' => 'required|string',
+        'equipos.*.estado_final'  => 'required|string',
+        'equipos.*.foto_equipo'   => 'nullable|file|mimes:jpeg,png,jpg,webp|max:10240',  // ← agregado
+        'equipos.*.foto_serie'    => 'nullable|file|mimes:jpeg,png,jpg,webp|max:10240',  // ← agregado
+    ]);
 
         DB::transaction(function () use ($request) {
             // Si venía de una parcial, actualizarla en vez de crear nueva
@@ -129,23 +131,25 @@ class MantencionController extends Controller
     }
 
     // ── GUARDAR PARCIAL ───────────────────────────────────
-    public function storeParcial(Request $request)
-    {
-        $request->validate([
-            'cliente_id'              => 'required|exists:clientes,id',
-            'fecha'                   => 'required|date',
-            'hora_inicio'             => 'required',
-            'codigo_local'            => 'required|string',
-            'direccion'               => 'required|string',
-            'ciudad'                  => 'required|string',
-            'equipos'                 => 'required|array|min:1',
-            'equipos.*.tipo'          => 'required|string',
-            'equipos.*.marca'         => 'required|string',
-            'equipos.*.modelo'        => 'required|string',
-            'equipos.*.serie'         => 'required|string',
-            'equipos.*.observaciones' => 'required|string',
-            'equipos.*.estado_final'  => 'required|string',
-        ]);
+public function storeParcial(Request $request)
+{
+    $request->validate([
+        'cliente_id'              => 'required|exists:clientes,id',
+        'fecha'                   => 'required|date',
+        'hora_inicio'             => 'required',
+        'codigo_local'            => 'required|string',
+        'direccion'               => 'required|string',
+        'ciudad'                  => 'required|string',
+        'equipos'                 => 'required|array|min:1',
+        'equipos.*.tipo'          => 'required|string',
+        'equipos.*.marca'         => 'required|string',
+        'equipos.*.modelo'        => 'required|string',
+        'equipos.*.serie'         => 'required|string',
+        'equipos.*.observaciones' => 'required|string',
+        'equipos.*.estado_final'  => 'required|string',
+        'equipos.*.foto_equipo'   => 'nullable|file|mimes:jpeg,png,jpg,webp|max:10240',  // ← agregado
+        'equipos.*.foto_serie'    => 'nullable|file|mimes:jpeg,png,jpg,webp|max:10240',  // ← agregado
+    ]);
 
         $userId = auth()->id();
 
@@ -233,19 +237,23 @@ public function editParcial(MantencionOrden $mantencion)
 
     // ── HELPER: GUARDAR EQUIPOS ───────────────────────────
     private function guardarEquipos(Request $request, MantencionOrden $orden)
-    {
-        foreach ($request->equipos as $idx => $equipoData) {
-            $fotoEquipoPath = null;
-            $fotoSeriePath  = null;
+{
+    foreach ($request->equipos as $idx => $equipoData) {
+        $fotoEquipoPath = null;
+        $fotoSeriePath  = null;
 
-            if ($request->hasFile("equipos.{$idx}.foto_equipo")) {
-                $fotoEquipoPath = $request->file("equipos.{$idx}.foto_equipo")
-                    ->store("mantencion/{$orden->id}", 'public');
-            }
-            if ($request->hasFile("equipos.{$idx}.foto_serie")) {
-                $fotoSeriePath = $request->file("equipos.{$idx}.foto_serie")
-                    ->store("mantencion/{$orden->id}", 'public');
-            }
+        if ($request->hasFile("equipos.{$idx}.foto_equipo")) {
+            $fotoEquipoPath = $this->storeConvertida(
+                $request->file("equipos.{$idx}.foto_equipo"),
+                "mantencion/{$orden->id}"
+            );
+        }
+        if ($request->hasFile("equipos.{$idx}.foto_serie")) {
+            $fotoSeriePath = $this->storeConvertida(
+                $request->file("equipos.{$idx}.foto_serie"),
+                "mantencion/{$orden->id}"
+            );
+        }
 
             $equipo = MantencionEquipo::create([
                 'mantencion_orden_id' => $orden->id,
@@ -270,7 +278,40 @@ public function editParcial(MantencionOrden $mantencion)
             }
         }
     }
+// ── HELPER: CONVERTIR Y GUARDAR IMAGEN ───────────────
+private function storeConvertida(\Illuminate\Http\UploadedFile $file, string $carpeta): string
+{
+    $mime = $file->getMimeType();
 
+    // Si NO es webp, guardar normal
+    if ($mime !== 'image/webp') {
+        return $file->store($carpeta, 'public');
+    }
+
+    // Convertir WebP → JPEG usando GD
+    $contenido = file_get_contents($file->getRealPath());
+    $imgOriginal = imagecreatefromstring($contenido);
+
+    if (!$imgOriginal) {
+        // Fallback: guardar tal cual si falla la conversión
+        return $file->store($carpeta, 'public');
+    }
+
+    $nombreSinExt = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
+    $rutaRelativa = $carpeta . '/' . $nombreSinExt . '_' . uniqid() . '.jpg';
+    $rutaAbsoluta = storage_path('app/public/' . $rutaRelativa);
+
+    // Crear directorio si no existe
+    if (!file_exists(dirname($rutaAbsoluta))) {
+        mkdir(dirname($rutaAbsoluta), 0755, true);
+    }
+
+    // Guardar como JPEG calidad 90
+    imagejpeg($imgOriginal, $rutaAbsoluta, 90);
+    imagedestroy($imgOriginal);
+
+    return $rutaRelativa;
+}
     // ── VER ───────────────────────────────────────────────
     public function show(MantencionOrden $mantencion)
     {
