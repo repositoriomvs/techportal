@@ -121,15 +121,18 @@
         </div>
     </div>
 
-    <div id="sla-info" style="display:none;" class="grid grid-cols-2 gap-3 mt-4">
-        <div class="bg-gray-50 border border-gray-100 rounded-lg p-3">
-            <div class="text-xs text-gray-400 uppercase tracking-wide mb-1">SLA Respuesta</div>
-            <div id="sla-resp" class="text-sm font-bold text-gray-700">—</div>
-        </div>
-        <div class="bg-gray-50 border border-gray-100 rounded-lg p-3">
-            <div class="text-xs text-gray-400 uppercase tracking-wide mb-1">SLA Resolución</div>
-            <div id="sla-res" class="text-sm font-bold text-gray-700">—</div>
-        </div>
+<div id="sla-info" style="display:none;" class="grid grid-cols-3 gap-3 mt-4">
+    <div class="bg-gray-50 border border-gray-100 rounded-lg p-3">
+        <div class="text-xs text-gray-400 uppercase tracking-wide mb-1">SLA Respuesta</div>
+        <div id="sla-resp" class="text-sm font-bold text-gray-700">—</div>
+    </div>
+    <div class="bg-gray-50 border border-gray-100 rounded-lg p-3">
+        <div class="text-xs text-gray-400 uppercase tracking-wide mb-1">SLA Resolución</div>
+        <div id="sla-res" class="text-sm font-bold text-gray-700">—</div>
+    </div>
+    <div class="bg-gray-50 border border-gray-100 rounded-lg p-3">
+        <div class="text-xs text-gray-400 uppercase tracking-wide mb-1">SLA Cambio equipo</div>
+        <div id="sla-cambio" class="text-sm font-bold text-gray-700">—</div>
     </div>
 </div>
 
@@ -445,16 +448,20 @@ function seleccionarLocal(id, codigo, dir, ciudad, region) {
 }
 
 function cargarSLA() {
-    const prioridad = document.getElementById('sel-prioridad').value || 'media';
-    fetch(`/incidencias/sla/${clienteId}/${prioridad}`)
+    fetch(`/incidencias/sla/${clienteId}`)
         .then(r => r.json())
         .then(data => {
             if (data) {
                 document.getElementById('sla-info').style.display = 'grid';
-                document.getElementById('sla-resp').textContent = data.horas_respuesta + ' horas hábiles';
-                document.getElementById('sla-res').textContent = data.horas_resolucion + ' horas hábiles';
+                document.getElementById('sla-resp').textContent   = data.horas_respuesta     > 0 ? data.horas_respuesta     + ' hrs' : 'Sin compromiso';
+                document.getElementById('sla-res').textContent    = data.horas_resolucion    > 0 ? data.horas_resolucion    + ' hrs' : 'Sin compromiso';
+                document.getElementById('sla-cambio').textContent = data.horas_cambio_equipo > 0 ? data.horas_cambio_equipo + ' hrs' : 'Sin compromiso';
+            } else {
+                document.getElementById('sla-info').style.display = 'none';
             }
-        }).catch(() => {});
+        }).catch(() => {
+            document.getElementById('sla-info').style.display = 'none';
+        });
 }
 
 function abrirModal() {

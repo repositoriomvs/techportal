@@ -63,24 +63,35 @@
                         <span class="text-xs font-mono font-bold px-2 py-1 rounded bg-green-50 text-green-600">
                             ✓ Enviada
                         </span>
-                    @else
-                        <span class="text-xs font-mono font-bold px-2 py-1 rounded bg-amber-50 text-amber-600">
-                            Borrador
-                        </span>
-                    @endif
+                    @elseif($orden->estado === 'parcial')
+    <span class="text-xs font-mono font-bold px-2 py-1 rounded bg-amber-50 text-amber-600">
+        💾 Parcial
+    </span>
+@else
+    <span class="text-xs font-mono font-bold px-2 py-1 rounded bg-gray-50 text-gray-500">
+        Borrador
+    </span>
+@endif
                 </td>
-                <td class="px-5 py-3">
-                    <div class="flex items-center justify-end gap-2">
-                        <a href="{{ route('mantencion.show', $orden) }}"
-                           class="text-xs text-gray-400 border border-gray-200 rounded px-2 py-1 hover:text-gray-600 transition-colors">
-                            👁 Ver
-                        </a>
-                        <a href="{{ route('mantencion.pdf', $orden) }}"
-                           class="text-xs text-white bg-red-600 hover:bg-red-700 rounded px-2 py-1 transition-colors">
-                            ⬇ PDF
-                        </a>
-                    </div>
-                </td>
+              <td class="px-5 py-3">
+    <div class="flex items-center justify-end gap-2">
+        @if($orden->estado === 'parcial')
+            <a href="{{ route('mantencion.edit.parcial', $orden) }}"
+               class="text-xs text-white bg-amber-500 hover:bg-amber-600 rounded px-2 py-1 transition-colors">
+                ✏️ Continuar...
+            </a>
+        @else
+            <a href="{{ route('mantencion.show', $orden) }}"
+               class="text-xs text-gray-400 border border-gray-200 rounded px-2 py-1 hover:text-gray-600 transition-colors">
+                👁 Ver
+            </a>
+            <a href="{{ route('mantencion.pdf', $orden) }}"
+               class="text-xs text-white bg-red-600 hover:bg-red-700 rounded px-2 py-1 transition-colors">
+                ⬇ PDF
+            </a>
+        @endif
+    </div>
+</td>
             </tr>
             @endforeach
         </tbody>

@@ -5,11 +5,12 @@
 <?php $__env->startSection('page-subtitle', $clientes->count() . ' clientes registrados'); ?>
 
 <?php $__env->startSection('topbar-actions'); ?>
-    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->hasRole('admin')): ?>
-    <a href="<?php echo e(route('clientes.create')); ?>"
+    
+    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if (\Illuminate\Support\Facades\Blade::check('role', 'admin')): ?>
+    <button onclick="document.getElementById('modal-nuevo-repo').classList.remove('hidden')"
        class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
-        + Nuevo Cliente
-    </a>
+        + Nuevo Repo
+    </button>
     <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 <?php $__env->stopSection(); ?>
 
@@ -18,7 +19,7 @@
 <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($clientes->isEmpty()): ?>
     <div class="bg-white border border-gray-200 rounded-xl p-16 text-center">
         <div class="text-5xl mb-4">🏢</div>
-        <div class="text-gray-500 text-sm">No hay clientes registrados aún.</div>
+        <div class="text-sm text-gray-400">No hay clientes registrados aún.</div>
         <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if (\Illuminate\Support\Facades\Blade::check('role', 'admin')): ?>
         <a href="<?php echo e(route('clientes.create')); ?>"
            class="inline-block mt-4 bg-red-600 text-white text-sm font-semibold px-6 py-2 rounded-lg hover:bg-red-700">
@@ -75,11 +76,11 @@
         </div>
 
         
-        <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-end gap-2">
+        <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-between gap-2">
             <a href="<?php echo e(route('clientes.show', $cliente)); ?>"
-   class="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
-    Ver repositorio →
-</a>
+               class="flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white text-xs font-semibold px-3 py-1.5 rounded-lg transition-colors">
+                Ver repositorio →
+            </a>
             <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if (\Illuminate\Support\Facades\Blade::check('role', 'admin')): ?>
             <div class="flex gap-2">
                 <a href="<?php echo e(route('clientes.edit', $cliente)); ?>"
@@ -99,6 +100,60 @@
     </div>
     <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?><?php endif; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?><?php endif; ?>
 </div>
+<?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+
+
+
+<?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if (\Illuminate\Support\Facades\Blade::check('role', 'admin')): ?>
+<div id="modal-nuevo-repo"
+     class="hidden fixed inset-0 z-50 flex items-center justify-center bg-black/50"
+     onclick="if(event.target===this) this.classList.add('hidden')">
+    <div class="bg-white rounded-xl shadow-xl w-full max-w-sm mx-4">
+
+        <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
+            <h3 class="font-bold text-gray-900">📁 Nuevo Repo — Seleccionar cliente</h3>
+            <button onclick="document.getElementById('modal-nuevo-repo').classList.add('hidden')"
+                    class="text-gray-400 hover:text-gray-600 text-lg leading-none">✕</button>
+        </div>
+
+        <div class="p-6">
+            <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-2">
+                Cliente <span class="text-red-500">*</span>
+            </label>
+            <select id="sel-cliente-repo"
+                    class="w-full border border-gray-200 rounded-lg px-4 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all mb-5">
+                <option value="">— Seleccionar cliente —</option>
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__currentLoopData = $clientes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cliente): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoop($loop->index); ?><?php endif; ?>
+                    <option value="<?php echo e($cliente->id); ?>"><?php echo e($cliente->nombre); ?></option>
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?><?php endif; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?><?php endif; ?>
+            </select>
+
+            <div class="flex gap-3">
+                <button onclick="irANuevoRepo()"
+                        class="flex-1 bg-red-600 hover:bg-red-700 text-white font-semibold py-2.5 rounded-lg text-sm transition-colors">
+                    Continuar →
+                </button>
+                <button onclick="document.getElementById('modal-nuevo-repo').classList.add('hidden')"
+                        class="flex-1 border border-gray-200 text-gray-500 hover:bg-gray-50 py-2.5 rounded-lg text-sm transition-colors">
+                    Cancelar
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script>
+function irANuevoRepo() {
+    const clienteId = document.getElementById('sel-cliente-repo').value;
+    if (!clienteId) {
+        alert('Por favor selecciona un cliente.');
+        return;
+    }
+    window.location.href = `/clientes/${clienteId}/documentos/create`;
+}
+</script>
 <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
 <?php $__env->stopSection(); ?>

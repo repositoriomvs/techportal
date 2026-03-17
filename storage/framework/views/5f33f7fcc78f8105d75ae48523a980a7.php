@@ -2,14 +2,7 @@
 <?php $__env->startSection('page-title', 'Dashboard'); ?>
 <?php $__env->startSection('page-subtitle', 'Resumen general del sistema'); ?>
 
-<?php $__env->startSection('topbar-actions'); ?>
-    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(auth()->user()->hasRole('admin')): ?>
-    <a href="<?php echo e(route('clientes.create')); ?>"
-       class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
-        + Nuevo Cliente
-    </a>
-    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-<?php $__env->stopSection(); ?>
+
 
 <?php $__env->startSection('content'); ?>
 
@@ -233,5 +226,4 @@
 </div>
 
 <?php $__env->stopSection(); ?>
-
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH E:\Projects\techportal\resources\views/dashboard.blade.php ENDPATH**/ ?>

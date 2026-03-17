@@ -63,24 +63,35 @@
                         <span class="text-xs font-mono font-bold px-2 py-1 rounded bg-green-50 text-green-600">
                             ✓ Enviada
                         </span>
-                    <?php else: ?>
-                        <span class="text-xs font-mono font-bold px-2 py-1 rounded bg-amber-50 text-amber-600">
-                            Borrador
-                        </span>
-                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    <?php elseif($orden->estado === 'parcial'): ?>
+    <span class="text-xs font-mono font-bold px-2 py-1 rounded bg-amber-50 text-amber-600">
+        💾 Parcial
+    </span>
+<?php else: ?>
+    <span class="text-xs font-mono font-bold px-2 py-1 rounded bg-gray-50 text-gray-500">
+        Borrador
+    </span>
+<?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </td>
-                <td class="px-5 py-3">
-                    <div class="flex items-center justify-end gap-2">
-                        <a href="<?php echo e(route('mantencion.show', $orden)); ?>"
-                           class="text-xs text-gray-400 border border-gray-200 rounded px-2 py-1 hover:text-gray-600 transition-colors">
-                            👁 Ver
-                        </a>
-                        <a href="<?php echo e(route('mantencion.pdf', $orden)); ?>"
-                           class="text-xs text-white bg-red-600 hover:bg-red-700 rounded px-2 py-1 transition-colors">
-                            ⬇ PDF
-                        </a>
-                    </div>
-                </td>
+              <td class="px-5 py-3">
+    <div class="flex items-center justify-end gap-2">
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($orden->estado === 'parcial'): ?>
+            <a href="<?php echo e(route('mantencion.edit.parcial', $orden)); ?>"
+               class="text-xs text-white bg-amber-500 hover:bg-amber-600 rounded px-2 py-1 transition-colors">
+                ✏️ Continuar...
+            </a>
+        <?php else: ?>
+            <a href="<?php echo e(route('mantencion.show', $orden)); ?>"
+               class="text-xs text-gray-400 border border-gray-200 rounded px-2 py-1 hover:text-gray-600 transition-colors">
+                👁 Ver
+            </a>
+            <a href="<?php echo e(route('mantencion.pdf', $orden)); ?>"
+               class="text-xs text-white bg-red-600 hover:bg-red-700 rounded px-2 py-1 transition-colors">
+                ⬇ PDF
+            </a>
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+    </div>
+</td>
             </tr>
             <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?><?php endif; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?><?php endif; ?>
         </tbody>

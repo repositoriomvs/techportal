@@ -4,14 +4,7 @@
 @section('page-title', 'Dashboard')
 @section('page-subtitle', 'Resumen general del sistema')
 
-@section('topbar-actions')
-    @if(auth()->user()->hasRole('admin'))
-    <a href="{{ route('clientes.create') }}"
-       class="flex items-center gap-2 bg-red-600 hover:bg-red-700 text-white text-sm font-semibold px-4 py-2 rounded-lg transition-colors">
-        + Nuevo Cliente
-    </a>
-    @endif
-@endsection
+{{-- ✅ Sin botón topbar --}}
 
 @section('content')
 

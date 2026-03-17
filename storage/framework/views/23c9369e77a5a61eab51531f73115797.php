@@ -1,285 +1,347 @@
 
-<?php $__env->startSection('title', 'Dashboard Ejecutivo'); ?>
-<?php $__env->startSection('page-title', 'Dashboard Ejecutivo'); ?>
-<?php $__env->startSection('page-subtitle', 'Métricas de servicio y soporte técnico'); ?>
+<?php $__env->startSection('title', 'Dashboard Mesa de Ayuda'); ?>
+<?php $__env->startSection('page-title', 'Dashboard'); ?>
+<?php $__env->startSection('page-subtitle', 'Métricas operacionales del servicio'); ?>
 
 <?php $__env->startSection('content'); ?>
-<style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Syne:wght@700;800&display=swap');
-
-.dash { font-family: 'Inter', sans-serif; }
-.num  { font-family: 'Syne', sans-serif; }
-
-.card {
-    background: #fff;
-    border: 1px solid #f1f5f9;
-    border-radius: 14px;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-}
-.card-header {
-    padding: 14px 20px 12px;
-    border-bottom: 1px solid #f8fafc;
-    display: flex; align-items: center; justify-content: space-between;
-}
-.card-title {
-    font-size: 11px; font-weight: 700;
-    text-transform: uppercase; letter-spacing: .08em; color: #94a3b8;
-}
-.card-body { padding: 18px 20px; }
-
-.kpi {
-    background: #fff; border: 1px solid #f1f5f9;
-    border-radius: 14px; padding: 18px 20px;
-    position: relative; overflow: hidden;
-    box-shadow: 0 1px 4px rgba(0,0,0,0.04);
-    transition: transform .15s, box-shadow .15s;
-}
-.kpi:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(0,0,0,0.07); }
-.kpi-accent { position: absolute; left:0; top:0; bottom:0; width:4px; border-radius:14px 0 0 14px; }
-.kpi-label { font-size:11px; font-weight:600; color:#94a3b8; text-transform:uppercase; letter-spacing:.07em; margin-bottom:8px; padding-left:8px; }
-.kpi-value { font-family:'Syne',sans-serif; font-size:34px; font-weight:800; line-height:1; padding-left:8px; }
-.kpi-sub   { font-size:11px; color:#94a3b8; margin-top:5px; padding-left:8px; }
-.kpi-badge { display:inline-block; font-size:10px; font-weight:700; padding:2px 8px; border-radius:99px; margin-top:5px; margin-left:8px; }
-
-.prog-bar-track { height:5px; background:#f1f5f9; border-radius:99px; overflow:hidden; }
-.prog-bar-fill  { height:100%; border-radius:99px; }
-
-.dt td, .dt th { padding:10px 16px; font-size:12px; }
-.dt th { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:#94a3b8; background:#fafafa; }
-.dt tbody tr:hover td { background:#fafafa; }
-.dt td { border-top:1px solid #f8fafc; color:#374151; vertical-align:middle; }
-
-.chip { display:inline-flex; align-items:center; gap:4px; padding:2px 8px; border-radius:99px; font-size:11px; font-weight:700; }
-
-.filter-bar { background:#fff; border:1px solid #f1f5f9; border-radius:14px; padding:14px 20px; box-shadow:0 1px 4px rgba(0,0,0,0.04); }
-.filter-select { border:1px solid #e2e8f0; border-radius:8px; padding:7px 12px; font-size:13px; font-family:'Inter',sans-serif; color:#374151; background:#fafafa; outline:none; cursor:pointer; transition:border-color .15s; }
-.filter-select:focus { border-color:#ef4444; background:#fff; }
-.btn-primary { background:#dc2626; color:#fff; border:none; border-radius:8px; padding:7px 18px; font-size:13px; font-weight:600; cursor:pointer; font-family:'Inter',sans-serif; transition:background .15s; }
-.btn-primary:hover { background:#b91c1c; }
-.btn-ghost { background:none; color:#64748b; border:1px solid #e2e8f0; border-radius:8px; padding:7px 14px; font-size:13px; font-family:'Inter',sans-serif; cursor:pointer; text-decoration:none; transition:background .15s; display:inline-block; }
-.btn-ghost:hover { background:#f8fafc; }
-</style>
 
 <?php
-$tasa_cierre = $total > 0 ? round($cerrados / $total * 100) : 0;
-$score = 0;
-if ($pct_sla_respuesta  >= 80) $score += 25; elseif ($pct_sla_respuesta  >= 60) $score += 12;
-if ($pct_sla_resolucion >= 80) $score += 25; elseif ($pct_sla_resolucion >= 60) $score += 12;
-if ($total > 0) $score += min(30, round($tasa_cierre * 30 / 100));
-if ($criticos == 0) $score += 20; elseif ($criticos <= 2) $score += 10;
-$score = min($score, 100);
-$scoreColor = $score >= 75 ? '#16a34a' : ($score >= 50 ? '#d97706' : '#dc2626');
-$scoreBg    = $score >= 75 ? '#f0fdf4' : ($score >= 50 ? '#fffbeb' : '#fef2f2');
-$scoreText  = $score >= 75 ? 'Servicio Saludable' : ($score >= 50 ? 'Atención Requerida' : 'Estado Crítico');
-$arc = fn($p) => round($p * 1.696, 1);
+$tasa = $total > 0 ? round($cerrados / $total * 100) : 0;
+$pendientes = $total - $cerrados;
+
+$estadoLabels = [
+    'abierto'           => 'Abierto',
+    'en_gestion'        => 'En gestión',
+    'asignado'          => 'Asignado',
+    'pendiente_cliente' => 'Pend. cliente',
+    'cancelado_cliente' => 'Cancelado',
+    'cerrado'           => 'Cerrado',
+];
+$estadoColors = ['#3b82f6','#8b5cf6','#f59e0b','#f97316','#94a3b8','#22c55e'];
+$tipoLabels = [
+    'incidencia_hardware' => 'Hardware',
+    'incidencia_software' => 'Software',
+    'requerimiento'       => 'Requerimiento',
+];
+$tipoColors = ['#ef4444','#3b82f6','#10b981'];
 ?>
 
-<div class="dash space-y-4">
+<style>
+/* ── base ── */
+.db { font-family: ui-sans-serif, system-ui, sans-serif; }
+.card { background:#fff; border:1px solid #e5e7eb; border-radius:12px; }
+.card-h { padding:12px 16px; border-bottom:1px solid #f3f4f6; display:flex; align-items:center; justify-content:space-between; }
+.card-t { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.07em; color:#6b7280; }
+.card-b { padding:14px 16px; }
+
+/* ── KPI ── */
+.kpi { background:#fff; border:1px solid #e5e7eb; border-radius:12px; padding:16px; position:relative; overflow:hidden; }
+.kpi-bar { position:absolute; left:0; top:0; bottom:0; width:3px; border-radius:12px 0 0 12px; }
+.kpi-lbl { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#9ca3af; margin-bottom:6px; padding-left:6px; }
+.kpi-val { font-size:30px; font-weight:800; line-height:1; padding-left:6px; }
+.kpi-sub { font-size:11px; color:#9ca3af; margin-top:4px; padding-left:6px; }
+
+/* ── SLA ring ── */
+.sla-wrap { display:flex; align-items:center; gap:12px; }
+.sla-ring { flex-shrink:0; }
+.sla-info { flex:1; }
+.sla-pct  { font-size:22px; font-weight:800; line-height:1; }
+.sla-meta { font-size:10px; color:#9ca3af; margin-top:2px; }
+.sla-bar-track { height:4px; background:#f3f4f6; border-radius:99px; margin-top:8px; overflow:hidden; }
+.sla-bar-fill  { height:100%; border-radius:99px; transition:width .8s ease; }
+
+/* ── chip ── */
+.chip { display:inline-flex; align-items:center; gap:3px; padding:2px 7px; border-radius:99px; font-size:10px; font-weight:700; }
+
+/* ── table ── */
+.tbl th { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:#9ca3af; padding:8px 12px; background:#fafafa; }
+.tbl td { font-size:12px; padding:9px 12px; border-top:1px solid #f3f4f6; color:#374151; vertical-align:middle; }
+.tbl tr:hover td { background:#fafafa; }
+
+/* ── map ── */
+.region-path { fill:#e2e8f0; stroke:#fff; stroke-width:1.5; cursor:pointer; transition:fill .15s; }
+.region-path:hover { fill:#fca5a5; }
+.region-path.active { fill:#dc2626; }
+.map-tooltip {
+    position:fixed; background:#1e293b; color:#fff; font-size:11px; font-weight:600;
+    padding:5px 10px; border-radius:7px; pointer-events:none; z-index:999;
+    opacity:0; transition:opacity .15s; white-space:nowrap;
+}
+
+/* ── filter ── */
+.f-select { border:1px solid #e5e7eb; border-radius:8px; padding:6px 10px; font-size:12px; background:#fafafa; outline:none; color:#374151; cursor:pointer; }
+.f-select:focus { border-color:#dc2626; }
+.f-btn { background:#dc2626; color:#fff; border:none; border-radius:8px; padding:6px 16px; font-size:12px; font-weight:600; cursor:pointer; }
+.f-btn:hover { background:#b91c1c; }
+.f-clear { background:none; color:#6b7280; border:1px solid #e5e7eb; border-radius:8px; padding:6px 12px; font-size:12px; cursor:pointer; text-decoration:none; display:inline-block; }
+.f-clear:hover { background:#f9fafb; }
+</style>
+
+<div class="db space-y-4">
 
 
-<div class="filter-bar">
-    <form method="GET" class="flex flex-wrap items-end gap-3">
-        <div>
-            <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Cliente</div>
-            <select name="cliente_id" class="filter-select">
-                <option value="">Todos los clientes</option>
-                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__currentLoopData = $clientes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $c): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoop($loop->index); ?><?php endif; ?>
-                <option value="<?php echo e($c->id); ?>" <?php echo e(request('cliente_id')==$c->id?'selected':''); ?>><?php echo e($c->nombre); ?></option>
+<div class="card">
+    <div class="card-b">
+        <form method="GET" class="flex flex-wrap items-end gap-3">
+            <div>
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:5px">Cliente</div>
+                <select name="cliente_id" class="f-select">
+                    <option value="">Todos los clientes</option>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__currentLoopData = $clientes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $c): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoop($loop->index); ?><?php endif; ?>
+                    <option value="<?php echo e($c->id); ?>" <?php echo e(request('cliente_id')==$c->id?'selected':''); ?>><?php echo e($c->nombre); ?></option>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?><?php endif; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?><?php endif; ?>
+                </select>
+            </div>
+            <div>
+                <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:5px">Período</div>
+                <select name="periodo" class="f-select">
+                    <option value="7"   <?php echo e(request('periodo','30')=='7'  ?'selected':''); ?>>7 días</option>
+                    <option value="30"  <?php echo e(request('periodo','30')=='30' ?'selected':''); ?>>30 días</option>
+                    <option value="90"  <?php echo e(request('periodo','30')=='90' ?'selected':''); ?>>90 días</option>
+                    <option value="365" <?php echo e(request('periodo','30')=='365'?'selected':''); ?>>12 meses</option>
+                </select>
+            </div>
+            <button type="submit" class="f-btn">Aplicar</button>
+            <a href="<?php echo e(route('incidencias.dashboard')); ?>" class="f-clear">Limpiar</a>
+
+            
+            <div class="ml-auto flex items-center gap-6">
+                <?php
+                    $headline = [
+                        ['SLA Respuesta', $pct_sla_respuesta.'%', $pct_sla_respuesta>=80?'#16a34a':'#dc2626'],
+                        ['SLA Resolución', $pct_sla_resolucion.'%', $pct_sla_resolucion>=80?'#16a34a':'#dc2626'],
+                        ['Total Tickets', $total, '#1d4ed8'],
+                        ['Críticos activos', $criticos, $criticos>0?'#dc2626':'#16a34a'],
+                    ];
+                ?>
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__currentLoopData = $headline; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as [$hl, $hv, $hc]): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoop($loop->index); ?><?php endif; ?>
+                <div class="text-right">
+                    <div style="font-size:20px;font-weight:800;color:<?php echo e($hc); ?>;line-height:1"><?php echo e($hv); ?></div>
+                    <div style="font-size:10px;color:#9ca3af;margin-top:2px"><?php echo e($hl); ?></div>
+                </div>
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(!$loop->last): ?><div style="width:1px;height:32px;background:#e5e7eb"></div><?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?><?php endif; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?><?php endif; ?>
-            </select>
-        </div>
-        <div>
-            <div class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-1.5">Período</div>
-            <select name="periodo" class="filter-select">
-                <option value="7"   <?php echo e(request('periodo','30')=='7'  ?'selected':''); ?>>Últimos 7 días</option>
-                <option value="30"  <?php echo e(request('periodo','30')=='30' ?'selected':''); ?>>Últimos 30 días</option>
-                <option value="90"  <?php echo e(request('periodo','30')=='90' ?'selected':''); ?>>Últimos 90 días</option>
-                <option value="365" <?php echo e(request('periodo','30')=='365'?'selected':''); ?>>Último año</option>
-            </select>
-        </div>
-        <button type="submit" class="btn-primary">Aplicar filtros</button>
-        <a href="<?php echo e(route('incidencias.dashboard')); ?>" class="btn-ghost">Limpiar</a>
-        <div class="ml-auto flex items-center gap-2">
-            <span class="text-xs text-gray-400">Índice de salud:</span>
-            <span class="chip" style="background:<?php echo e($scoreBg); ?>;color:<?php echo e($scoreColor); ?>;border:1px solid <?php echo e($scoreColor); ?>33">
-                <svg width="7" height="7"><circle cx="3.5" cy="3.5" r="3.5" fill="<?php echo e($scoreColor); ?>"/></svg>
-                <?php echo e($scoreText); ?> · <?php echo e($score); ?>/100
-            </span>
-        </div>
-    </form>
+            </div>
+        </form>
+    </div>
 </div>
 
 
 <div class="grid grid-cols-6 gap-3">
 <?php
 $kpis = [
-    ['Total Tickets', $total,        '#64748b', 'en el período',         null, null],
-    ['Abiertos',      $abiertos,     '#2563eb', 'sin resolver',          null, null],
-    ['En Gestión',    $en_gestion,   '#7c3aed', 'en proceso',            null, null],
-    ['Cerrados',      $cerrados,     '#16a34a', 'resueltos',             $tasa_cierre.'% del total', '#dcfce7'],
-    ['Críticos',      $criticos,     '#dc2626', 'prioridad alta abierta', $criticos>0?'⚠ Requiere acción':'✓ Sin críticos', $criticos>0?'#fee2e2':'#dcfce7'],
-    ['MTTR',          $mttr.'h',     '#d97706', 'tiempo medio resolución', null, null],
+    ['Total',        $total,      '#64748b', 'tickets en período'],
+    ['Abiertos',     $abiertos,   '#2563eb', 'sin resolver'],
+    ['En gestión',   $en_gestion, '#7c3aed', 'en proceso'],
+    ['Cerrados',     $cerrados,   '#16a34a', $tasa.'% del total'],
+    ['Críticos',     $criticos,   '#dc2626', $criticos>0?'requiere atención':'sin críticos'],
+    ['MTTR',         $mttr.'h',   '#d97706', 'tiempo resolución'],
 ];
 ?>
-<?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__currentLoopData = $kpis; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as [$lbl,$val,$color,$sub,$badge,$badgeBg]): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoop($loop->index); ?><?php endif; ?>
+<?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__currentLoopData = $kpis; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as [$l,$v,$c,$s]): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoop($loop->index); ?><?php endif; ?>
 <div class="kpi">
-    <div class="kpi-accent" style="background:<?php echo e($color); ?>"></div>
-    <div class="kpi-label"><?php echo e($lbl); ?></div>
-    <div class="kpi-value" style="color:<?php echo e($color); ?>"><?php echo e($val); ?></div>
-    <div class="kpi-sub"><?php echo e($sub); ?></div>
-    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($badge): ?>
-    <span class="kpi-badge" style="background:<?php echo e($badgeBg); ?>;color:<?php echo e($color); ?>"><?php echo e($badge); ?></span>
-    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+    <div class="kpi-bar" style="background:<?php echo e($c); ?>"></div>
+    <div class="kpi-lbl"><?php echo e($l); ?></div>
+    <div class="kpi-val" style="color:<?php echo e($c); ?>"><?php echo e($v); ?></div>
+    <div class="kpi-sub"><?php echo e($s); ?></div>
 </div>
 <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?><?php endif; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?><?php endif; ?>
 </div>
 
 
-<div class="grid grid-cols-4 gap-4">
+<div class="grid gap-4" style="grid-template-columns:1fr 1fr 2fr">
 
-<?php
-$gauges = [
-    ['SLA Respuesta',    $pct_sla_respuesta,  'Tiempo de primera atención', 80],
-    ['SLA Resolución',   $pct_sla_resolucion, 'Cierre dentro del plazo',    80],
-    ['Tasa de Cierre',   $tasa_cierre,        'Tickets cerrados / total',   70],
-];
-?>
-<?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__currentLoopData = $gauges; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as [$glbl, $gpct, $gsub, $gmeta]): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoop($loop->index); ?><?php endif; ?>
-<?php $gc = $gpct>=$gmeta?'#16a34a':($gpct>=($gmeta*0.75)?'#d97706':'#dc2626'); ?>
-<div class="card">
-    <div class="card-header">
-        <span class="card-title"><?php echo e($glbl); ?></span>
-        <span class="chip" style="background:<?php echo e($gpct>=$gmeta?'#f0fdf4':($gpct>=($gmeta*0.75)?'#fffbeb':'#fef2f2')); ?>;color:<?php echo e($gc); ?>">
-            <?php echo e($gpct>=$gmeta?'Cumple':($gpct>=($gmeta*0.75)?'Parcial':'Incumple')); ?>
+    
+    <div class="space-y-3">
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__currentLoopData = [['SLA Respuesta','primera atención',$pct_sla_respuesta,80],['SLA Resolución','cierre en plazo',$pct_sla_resolucion,80]]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as [$sl,$ss,$sp,$sm]): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoop($loop->index); ?><?php endif; ?>
+        <?php $sc = $sp>=$sm?'#16a34a':($sp>=($sm*0.75)?'#d97706':'#dc2626'); ?>
+        <div class="card">
+            <div class="card-h">
+                <span class="card-t"><?php echo e($sl); ?></span>
+                <span class="chip" style="background:<?php echo e($sp>=$sm?'#f0fdf4':($sp>=($sm*0.75)?'#fffbeb':'#fef2f2')); ?>;color:<?php echo e($sc); ?>">
+                    <?php echo e($sp>=$sm?'Cumple':($sp>=($sm*0.75)?'Parcial':'Incumple')); ?>
 
-        </span>
-    </div>
-    <div class="card-body flex flex-col items-center gap-1">
-        <svg width="160" height="92" viewBox="0 0 160 92">
-            <path d="M14 88 A66 66 0 0 1 146 88" fill="none" stroke="#f1f5f9" stroke-width="13" stroke-linecap="round"/>
-            <path d="M14 88 A66 66 0 0 1 146 88" fill="none" stroke="<?php echo e($gc); ?>" stroke-width="13" stroke-linecap="round"
-                  stroke-dasharray="<?php echo e($arc($gpct)); ?> 210"/>
-            <text x="80" y="77" text-anchor="middle" font-size="26" font-weight="800" fill="<?php echo e($gc); ?>" font-family="Syne,sans-serif"><?php echo e($gpct); ?>%</text>
-            <text x="80" y="90" text-anchor="middle" font-size="9" fill="#94a3b8" font-family="Inter,sans-serif">META <?php echo e($gmeta); ?>%</text>
-            <text x="10"  y="92" font-size="8" fill="#cbd5e1" font-family="Inter,sans-serif">0</text>
-            <text x="145" y="92" font-size="8" fill="#cbd5e1" font-family="Inter,sans-serif">100</text>
-        </svg>
-        <div class="text-xs text-gray-400 text-center"><?php echo e($gsub); ?></div>
-    </div>
-</div>
-<?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?><?php endif; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?><?php endif; ?>
-
-
-<div class="card">
-    <div class="card-header"><span class="card-title">MTTR por Prioridad</span></div>
-    <div class="card-body space-y-3">
-        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__currentLoopData = [['Alta',$mttr_alta,'#dc2626','#fef2f2'],['Media',$mttr_media,'#d97706','#fffbeb'],['Baja',$mttr_baja,'#16a34a','#f0fdf4']]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as [$pl,$pv,$pc,$pbg]): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoop($loop->index); ?><?php endif; ?>
-        <div class="flex items-center justify-between p-3 rounded-xl" style="background:<?php echo e($pbg); ?>">
-            <div>
-                <div class="text-xs font-bold" style="color:<?php echo e($pc); ?>">Prioridad <?php echo e($pl); ?></div>
-                <div class="text-xs text-gray-400">resolución prom.</div>
+                </span>
             </div>
-            <div class="text-2xl font-bold num" style="color:<?php echo e($pc); ?>">
-                <?php echo e($pv=='???' ? '—' : $pv); ?><span class="text-xs font-normal text-gray-400 ml-0.5"><?php echo e($pv!='???' ? 'h' : ''); ?></span>
+            <div class="card-b">
+                <div class="sla-wrap">
+                    <svg class="sla-ring" width="64" height="64" viewBox="0 0 64 64">
+                        <circle cx="32" cy="32" r="26" fill="none" stroke="#f3f4f6" stroke-width="7"/>
+                        <circle cx="32" cy="32" r="26" fill="none" stroke="<?php echo e($sc); ?>" stroke-width="7"
+                                stroke-linecap="round" stroke-dasharray="163"
+                                stroke-dashoffset="<?php echo e(163 - ($sp/100*163)); ?>"
+                                transform="rotate(-90 32 32)"/>
+                        <text x="32" y="37" text-anchor="middle" font-size="13" font-weight="800" fill="<?php echo e($sc); ?>" font-family="system-ui"><?php echo e($sp); ?>%</text>
+                    </svg>
+                    <div class="sla-info">
+                        <div class="sla-pct" style="color:<?php echo e($sc); ?>"><?php echo e($sp); ?>%</div>
+                        <div class="sla-meta">Meta <?php echo e($sm); ?>% · <?php echo e($ss); ?></div>
+                        <div class="sla-bar-track">
+                            <div class="sla-bar-fill" style="width:<?php echo e($sp); ?>%;background:<?php echo e($sc); ?>"></div>
+                        </div>
+                    </div>
+                </div>
             </div>
         </div>
         <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?><?php endif; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?><?php endif; ?>
+
+        
+        <div class="card">
+            <div class="card-h"><span class="card-t">Tasa de Cierre</span></div>
+            <div class="card-b">
+                <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+                    <span style="font-size:28px;font-weight:800;color:<?php echo e($tasa>=70?'#16a34a':($tasa>=50?'#d97706':'#dc2626')); ?>"><?php echo e($tasa); ?>%</span>
+                    <span style="font-size:11px;color:#9ca3af"><?php echo e($cerrados); ?>/<?php echo e($total); ?></span>
+                </div>
+                <div class="sla-bar-track" style="height:6px">
+                    <div class="sla-bar-fill" style="width:<?php echo e($tasa); ?>%;background:<?php echo e($tasa>=70?'#16a34a':($tasa>=50?'#d97706':'#dc2626')); ?>"></div>
+                </div>
+                <div style="display:flex;justify-content:space-between;font-size:10px;color:#9ca3af;margin-top:4px">
+                    <span><?php echo e($cerrados); ?> cerrados</span><span><?php echo e($pendientes); ?> pendientes</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="card">
+        <div class="card-h"><span class="card-t">Estado Actual</span></div>
+        <div class="card-b">
+            <div style="display:flex;justify-content:center;margin-bottom:10px">
+                <canvas id="cEstado" width="150" height="150"></canvas>
+            </div>
+            <div id="legEstado" class="space-y-1.5"></div>
+        </div>
+    </div>
+
+    
+    <div class="card">
+        <div class="card-h">
+            <span class="card-t">Tendencia Mensual</span>
+            <span style="font-size:11px;color:#9ca3af"><?php echo e($tendencia->count()); ?> períodos</span>
+        </div>
+        <div class="card-b">
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tendencia->count()): ?>
+            <canvas id="cTendencia" height="130"></canvas>
+            <?php else: ?>
+            <div style="display:flex;align-items:center;justify-content:center;height:130px;color:#9ca3af;font-size:12px">Sin datos</div>
+            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+        </div>
     </div>
 </div>
 
-</div>
 
+<div class="grid gap-4" style="grid-template-columns:220px 1fr 1fr">
 
-<div class="grid grid-cols-3 gap-4">
-    <div class="card">
-        <div class="card-header"><span class="card-title">Distribución por Estado</span></div>
-        <div class="card-body">
-            <canvas id="chartEstados" height="190"></canvas>
-            <div id="legendEstados" class="mt-4 space-y-2"></div>
+    
+    <div class="card" style="overflow:hidden">
+        <div class="card-h"><span class="card-t">Regiones</span></div>
+        <div class="card-b" style="padding:8px;display:flex;flex-direction:column;align-items:center">
+            <div id="mapTooltip" class="map-tooltip"></div>
+            <svg id="mapaChile" viewBox="0 0 200 820" style="width:100%;max-height:420px" xmlns="http://www.w3.org/2000/svg">
+                <!-- Arica y Parinacota -->
+                <path class="region-path" data-region="Arica y Parinacota" d="M60,10 L140,10 L145,45 L130,50 L60,48 Z"/>
+                <!-- Tarapacá -->
+                <path class="region-path" data-region="Tarapacá" d="M60,48 L130,50 L135,85 L125,90 L58,88 Z"/>
+                <!-- Antofagasta -->
+                <path class="region-path" data-region="Antofagasta" d="M58,88 L125,90 L130,160 L115,165 L55,162 Z"/>
+                <!-- Atacama -->
+                <path class="region-path" data-region="Atacama" d="M55,162 L115,165 L118,225 L105,230 L52,227 Z"/>
+                <!-- Coquimbo -->
+                <path class="region-path" data-region="Coquimbo" d="M52,227 L105,230 L107,280 L96,285 L50,282 Z"/>
+                <!-- Valparaíso -->
+                <path class="region-path" data-region="Valparaíso" d="M50,282 L96,285 L97,315 L88,320 L48,317 Z"/>
+                <!-- Metropolitana -->
+                <path class="region-path" data-region="Metropolitana" d="M48,317 L88,320 L89,345 L80,348 L46,345 Z"/>
+                <!-- O'Higgins -->
+                <path class="region-path" data-region="O'Higgins" d="M46,345 L80,348 L81,375 L72,378 L44,375 Z"/>
+                <!-- Maule -->
+                <path class="region-path" data-region="Maule" d="M44,375 L72,378 L73,415 L63,418 L42,415 Z"/>
+                <!-- Ñuble -->
+                <path class="region-path" data-region="Ñuble" d="M42,415 L63,418 L64,440 L55,442 L40,440 Z"/>
+                <!-- Biobío -->
+                <path class="region-path" data-region="Biobío" d="M40,440 L55,442 L57,468 L47,471 L38,468 Z"/>
+                <!-- Araucanía -->
+                <path class="region-path" data-region="Araucanía" d="M38,468 L47,471 L49,505 L38,508 L35,505 Z"/>
+                <!-- Los Ríos -->
+                <path class="region-path" data-region="Los Ríos" d="M35,505 L38,508 L40,530 L30,532 L28,530 Z"/>
+                <!-- Los Lagos -->
+                <path class="region-path" data-region="Los Lagos" d="M28,530 L30,532 L35,580 L22,585 L18,580 Z"/>
+                <!-- Aysén -->
+                <path class="region-path" data-region="Aysén" d="M18,580 L22,585 L28,650 L12,655 L8,650 Z"/>
+                <!-- Magallanes -->
+                <path class="region-path" data-region="Magallanes" d="M8,650 L12,655 L20,720 L5,725 L2,720 Z"/>
+            </svg>
+            <div style="font-size:10px;color:#9ca3af;text-align:center;margin-top:4px">Clic para filtrar por región</div>
+            <button onclick="clearRegion()" id="btnClearRegion" style="display:none;margin-top:6px;font-size:10px;color:#dc2626;background:none;border:1px solid #fca5a5;border-radius:6px;padding:3px 10px;cursor:pointer">
+                Limpiar selección
+            </button>
         </div>
     </div>
+
+    
     <div class="card">
-        <div class="card-header"><span class="card-title">Carga por Técnico</span></div>
-        <div class="card-body">
-            <canvas id="chartTecnicos" height="190"></canvas>
+        <div class="card-h"><span class="card-t">Tipo de Ticket</span></div>
+        <div class="card-b">
+            <div style="display:flex;justify-content:center;margin-bottom:10px">
+                <canvas id="cTipo" width="160" height="160"></canvas>
+            </div>
+            <div id="legTipo" class="space-y-1.5"></div>
         </div>
     </div>
-    <div class="card">
-        <div class="card-header"><span class="card-title">Tipo de Ticket</span></div>
-        <div class="card-body">
-            <canvas id="chartTipos" height="190"></canvas>
-            <div id="legendTipos" class="mt-4 space-y-2"></div>
+
+    
+    <div class="space-y-3">
+        <div class="card">
+            <div class="card-h"><span class="card-t">MTTR por Prioridad</span></div>
+            <div class="card-b">
+                <div class="grid grid-cols-3 gap-2">
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__currentLoopData = [['Alta',$mttr_alta,'#dc2626','#fef2f2'],['Media',$mttr_media,'#d97706','#fffbeb'],['Baja',$mttr_baja,'#16a34a','#f0fdf4']]; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as [$pl,$pv,$pc,$pb]): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoop($loop->index); ?><?php endif; ?>
+                    <div style="background:<?php echo e($pb); ?>;border-radius:10px;padding:10px;text-align:center">
+                        <div style="font-size:10px;font-weight:700;color:<?php echo e($pc); ?>;text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px"><?php echo e($pl); ?></div>
+                        <div style="font-size:22px;font-weight:800;color:<?php echo e($pc); ?>;line-height:1"><?php echo e($pv=='???' ? '—' : $pv); ?></div>
+                        <div style="font-size:10px;color:<?php echo e($pc); ?>;opacity:.6;margin-top:2px"><?php echo e($pv!='???' ? 'horas' : 'sin datos'); ?></div>
+                    </div>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?><?php endif; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?><?php endif; ?>
+                </div>
+            </div>
         </div>
-    </div>
-</div>
 
-
-<div class="card">
-    <div class="card-header">
-        <span class="card-title">Tendencia Mensual</span>
-        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tendencia->count()): ?>
-        <span class="text-xs text-gray-400"><?php echo e($tendencia->count()); ?> períodos</span>
-        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-    </div>
-    <div class="card-body">
-        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tendencia->count()): ?>
-        <canvas id="chartTendencia" height="75"></canvas>
-        <?php else: ?>
-        <div class="flex items-center justify-center h-16 text-gray-400 text-sm">Sin datos de tendencia para el período seleccionado</div>
-        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+        <div class="card">
+            <div class="card-h"><span class="card-t">Top Clientes</span></div>
+            <div style="overflow-x:auto">
+                <table class="w-full tbl">
+                    <thead><tr>
+                        <th class="text-left">Cliente</th>
+                        <th class="text-center">Total</th>
+                        <th class="text-center">Abiert.</th>
+                        <th class="text-center">SLA</th>
+                    </tr></thead>
+                    <tbody>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__empty_1 = true; $__currentLoopData = $por_cliente->sortByDesc('total')->take(5); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoop($loop->index); ?><?php endif; ?>
+                    <?php $s=$item->pct_sla; $sc2=$s===null?'#9ca3af':($s>=80?'#16a34a':($s>=60?'#d97706':'#dc2626')); ?>
+                    <tr>
+                        <td style="font-weight:600;font-size:11px"><?php echo e($item->cliente->nombre??'—'); ?></td>
+                        <td style="text-align:center;font-weight:700"><?php echo e($item->total); ?></td>
+                        <td style="text-align:center;color:<?php echo e($item->abiertos>0?'#2563eb':'#9ca3af'); ?>;font-weight:700"><?php echo e($item->abiertos); ?></td>
+                        <td style="text-align:center;font-weight:700;color:<?php echo e($sc2); ?>"><?php echo e($s!==null?$s.'%':'—'); ?></td>
+                    </tr>
+                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?><?php endif; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?><?php endif; ?>
+                    <tr><td colspan="4" style="text-align:center;color:#9ca3af;padding:16px;font-size:11px">Sin datos</td></tr>
+                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+                    </tbody>
+                </table>
+            </div>
+        </div>
     </div>
 </div>
 
 
 <div class="grid grid-cols-2 gap-4">
-
     <div class="card">
-        <div class="card-header"><span class="card-title">Rendimiento por Cliente</span></div>
-        <div class="overflow-x-auto">
-            <table class="w-full dt">
-                <thead><tr>
-                    <th class="text-left">Cliente</th>
-                    <th class="text-center">Total</th>
-                    <th class="text-center">Abiertos</th>
-                    <th class="text-center">SLA</th>
-                    <th class="text-left">Riesgo</th>
-                </tr></thead>
-                <tbody>
-                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__empty_1 = true; $__currentLoopData = $por_cliente; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoop($loop->index); ?><?php endif; ?>
-                <?php
-                    $sla = $item->pct_sla;
-                    $r='Bajo'; $rc='#16a34a'; $rb='#f0fdf4';
-                    if ($item->abiertos>5 || ($sla!==null&&$sla<60)) { $r='Alto';  $rc='#dc2626'; $rb='#fef2f2'; }
-                    elseif ($item->abiertos>2 || ($sla!==null&&$sla<80)) { $r='Medio'; $rc='#d97706'; $rb='#fffbeb'; }
-                ?>
-                <tr>
-                    <td class="font-semibold"><?php echo e($item->cliente->nombre ?? '—'); ?></td>
-                    <td class="text-center font-bold"><?php echo e($item->total); ?></td>
-                    <td class="text-center"><span class="<?php echo e($item->abiertos>0?'text-blue-600 font-bold':'text-gray-300'); ?>"><?php echo e($item->abiertos); ?></span></td>
-                    <td class="text-center">
-                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($sla!==null): ?>
-                        <div class="flex flex-col items-center gap-1">
-                            <span class="font-bold text-xs <?php echo e($sla>=80?'text-green-600':($sla>=60?'text-amber-600':'text-red-600')); ?>"><?php echo e($sla); ?>%</span>
-                            <div class="w-16 prog-bar-track"><div class="prog-bar-fill <?php echo e($sla>=80?'bg-green-500':($sla>=60?'bg-amber-500':'bg-red-500')); ?>" style="width:<?php echo e($sla); ?>%"></div></div>
-                        </div>
-                        <?php else: ?>
-                        <span class="text-gray-300 text-xs">N/A</span>
-                        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                    </td>
-                    <td><span class="chip" style="background:<?php echo e($rb); ?>;color:<?php echo e($rc); ?>"><?php echo e($r); ?></span></td>
-                </tr>
-                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?><?php endif; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?><?php endif; ?>
-                <tr><td colspan="5" class="text-center text-gray-400 py-6 text-xs">Sin datos en este período</td></tr>
-                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                </tbody>
-            </table>
-        </div>
-    </div>
-
-    <div class="card">
-        <div class="card-header"><span class="card-title">Rendimiento por Técnico</span></div>
-        <div class="overflow-x-auto">
-            <table class="w-full dt">
+        <div class="card-h"><span class="card-t">Rendimiento por Técnico</span></div>
+        <div style="overflow-x:auto">
+            <table class="w-full tbl">
                 <thead><tr>
                     <th class="text-left">Técnico</th>
                     <th class="text-center">Total</th>
@@ -291,212 +353,210 @@ $gauges = [
                 <tbody>
                 <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__empty_1 = true; $__currentLoopData = $por_tecnico; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $item): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); $__empty_1 = false; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoop($loop->index); ?><?php endif; ?>
                 <?php
-                    $c=$item->abiertos??0;
-                    $cc=$c>=6?'#dc2626':($c>=3?'#d97706':'#16a34a');
-                    $cb=$c>=6?'#fef2f2':($c>=3?'#fffbeb':'#f0fdf4');
-                    $cl=$c>=6?'Alta':($c>=3?'Media':'Normal');
+                    $ca=$item->abiertos??0;
+                    $cc2=$ca>=6?'#dc2626':($ca>=3?'#d97706':'#16a34a');
+                    $cb2=$ca>=6?'#fef2f2':($ca>=3?'#fffbeb':'#f0fdf4');
+                    $cl2=$ca>=6?'Alta':($ca>=3?'Media':'Normal');
                     $ts=$item->pct_sla;
                 ?>
                 <tr>
                     <td>
-                        <div class="flex items-center gap-2">
-                            <div class="w-7 h-7 rounded-full bg-red-50 flex items-center justify-center text-red-600 font-bold text-xs flex-shrink-0">
+                        <div style="display:flex;align-items:center;gap:6px">
+                            <div style="width:26px;height:26px;border-radius:50%;background:#fee2e2;color:#dc2626;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;flex-shrink:0">
                                 <?php echo e(strtoupper(substr($item->tecnico->name??'T',0,1))); ?>
 
                             </div>
-                            <span class="font-semibold text-xs"><?php echo e($item->tecnico->name??'—'); ?></span>
+                            <span style="font-weight:600;font-size:11px"><?php echo e($item->tecnico->name??'—'); ?></span>
                         </div>
                     </td>
-                    <td class="text-center font-bold"><?php echo e($item->total); ?></td>
-                    <td class="text-center text-blue-600 font-bold"><?php echo e($item->abiertos??0); ?></td>
-                    <td class="text-center text-green-600 font-bold"><?php echo e($item->cerrados??0); ?></td>
-                    <td class="text-center font-bold <?php echo e(($ts??0)>=80?'text-green-600':'text-red-600'); ?>"><?php echo e($ts!==null?$ts.'%':'—'); ?></td>
-                    <td><span class="chip" style="background:<?php echo e($cb); ?>;color:<?php echo e($cc); ?>"><?php echo e($cl); ?></span></td>
+                    <td style="text-align:center;font-weight:700"><?php echo e($item->total); ?></td>
+                    <td style="text-align:center;color:#2563eb;font-weight:700"><?php echo e($item->abiertos??0); ?></td>
+                    <td style="text-align:center;color:#16a34a;font-weight:700"><?php echo e($item->cerrados??0); ?></td>
+                    <td style="text-align:center;font-weight:700;color:<?php echo e(($ts??0)>=80?'#16a34a':'#dc2626'); ?>"><?php echo e($ts!==null?$ts.'%':'—'); ?></td>
+                    <td><span class="chip" style="background:<?php echo e($cb2); ?>;color:<?php echo e($cc2); ?>"><?php echo e($cl2); ?></span></td>
                 </tr>
                 <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?><?php endif; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); if ($__empty_1): ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?><?php endif; ?>
-                <tr><td colspan="6" class="text-center text-gray-400 py-6 text-xs">Sin técnicos asignados en este período</td></tr>
+                <tr><td colspan="6" style="text-align:center;color:#9ca3af;padding:16px;font-size:11px">Sin técnicos asignados</td></tr>
                 <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                 </tbody>
             </table>
         </div>
     </div>
-</div>
 
-
-<?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tickets_criticos->count()): ?>
-<div class="card" style="border-color:#fecaca">
-    <div class="card-header" style="background:#fff5f5;border-color:#fecaca">
-        <div class="flex items-center gap-2">
-            <span class="card-title" style="color:#dc2626">Tickets Críticos Activos</span>
-            <span class="chip" style="background:#dc2626;color:#fff"><?php echo e($tickets_criticos->count()); ?></span>
+    <div class="card">
+        <div class="card-h">
+            <div style="display:flex;align-items:center;gap:8px">
+                <span class="card-t" style="color:#dc2626">Tickets Críticos Activos</span>
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tickets_criticos->count()): ?>
+                <span class="chip" style="background:#dc2626;color:#fff"><?php echo e($tickets_criticos->count()); ?></span>
+                <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+            </div>
         </div>
-    </div>
-    <div class="overflow-x-auto">
-        <table class="w-full dt">
-            <thead><tr>
-                <th class="text-left">Ticket</th>
-                <th class="text-left">Cliente</th>
-                <th class="text-left">Asunto</th>
-                <th class="text-left">Estado</th>
-                <th class="text-left">Técnico</th>
-                <th class="text-left">SLA Vence</th>
-                <th></th>
-            </tr></thead>
-            <tbody>
-            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__currentLoopData = $tickets_criticos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $inc): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoop($loop->index); ?><?php endif; ?>
-            <?php
-                $em=['abierto'=>['Abierto','#2563eb','#eff6ff'],'en_gestion'=>['En gestión','#7c3aed','#f5f3ff'],'asignado'=>['Asignado','#d97706','#fffbeb'],'pendiente_cliente'=>['Pend. cliente','#ea580c','#fff7ed']];
-                [$eL,$eC,$eB]=$em[$inc->estado_mesa]??[$inc->estado_mesa,'#94a3b8','#f8fafc'];
-            ?>
-            <tr>
-                <td class="font-mono font-bold text-gray-600 text-xs"><?php echo e($inc->numero_ticket); ?></td>
-                <td class="font-semibold"><?php echo e($inc->cliente->nombre); ?></td>
-                <td class="text-gray-600 max-w-xs truncate"><?php echo e($inc->asunto); ?></td>
-                <td><span class="chip" style="background:<?php echo e($eB); ?>;color:<?php echo e($eC); ?>"><?php echo e($eL); ?></span></td>
-                <td class="text-gray-500"><?php echo e($inc->tecnico->name??'Sin asignar'); ?></td>
-                <td>
-                    <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($inc->fecha_limite_resolucion): ?>
-                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(now()->gt($inc->fecha_limite_resolucion)): ?>
-                            <span class="chip" style="background:#fef2f2;color:#dc2626">Vencido</span>
+        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($tickets_criticos->count()): ?>
+        <div style="overflow-x:auto">
+            <table class="w-full tbl">
+                <thead><tr>
+                    <th class="text-left">Ticket</th>
+                    <th class="text-left">Cliente</th>
+                    <th class="text-left">Asunto</th>
+                    <th class="text-left">Técnico</th>
+                    <th class="text-left">SLA</th>
+                    <th></th>
+                </tr></thead>
+                <tbody>
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__currentLoopData = $tickets_criticos; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $inc): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoop($loop->index); ?><?php endif; ?>
+                <tr>
+                    <td style="font-family:monospace;font-weight:700;font-size:11px;color:#6b7280"><?php echo e($inc->numero_ticket); ?></td>
+                    <td style="font-weight:600;font-size:11px"><?php echo e($inc->cliente->nombre); ?></td>
+                    <td style="font-size:11px;color:#6b7280;max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><?php echo e($inc->asunto); ?></td>
+                    <td style="font-size:11px;color:#6b7280"><?php echo e($inc->tecnico->name??'Sin asignar'); ?></td>
+                    <td style="font-size:11px">
+                        <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($inc->fecha_limite_resolucion): ?>
+                            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if(now()->gt($inc->fecha_limite_resolucion)): ?>
+                                <span class="chip" style="background:#fef2f2;color:#dc2626">Vencido</span>
+                            <?php else: ?>
+                                <span style="color:#d97706;font-weight:600;font-size:11px"><?php echo e(now()->diffForHumans($inc->fecha_limite_resolucion,true)); ?></span>
+                            <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
                         <?php else: ?>
-                            <span class="font-semibold text-amber-600 text-xs"><?php echo e(now()->diffForHumans($inc->fecha_limite_resolucion,true)); ?></span>
+                            <span style="color:#9ca3af">—</span>
                         <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                    <?php else: ?>
-                        <span class="text-gray-300 text-xs">Sin SLA</span>
-                    <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
-                </td>
-                <td>
-                    <a href="<?php echo e(route('incidencias.show',$inc)); ?>"
-                       class="inline-flex items-center gap-1 bg-red-600 hover:bg-red-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
-                        Ver →
-                    </a>
-                </td>
-            </tr>
-            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?><?php endif; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?><?php endif; ?>
-            </tbody>
-        </table>
+                    </td>
+                    <td>
+                        <a href="<?php echo e(route('incidencias.show',$inc)); ?>"
+                           style="background:#dc2626;color:#fff;font-size:11px;font-weight:700;padding:4px 10px;border-radius:6px;text-decoration:none;display:inline-block">
+                            Ver →
+                        </a>
+                    </td>
+                </tr>
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?><?php endif; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?><?php endif; ?>
+                </tbody>
+            </table>
+        </div>
+        <?php else: ?>
+        <div class="card-b" style="text-align:center;color:#16a34a;font-size:12px;font-weight:600;padding:20px">
+            ✓ Sin tickets críticos activos
+        </div>
+        <?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
     </div>
 </div>
-<?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
 </div>
+
+<div id="mapTooltip" class="map-tooltip"></div>
+
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>
-Chart.defaults.font.family = "'Inter', sans-serif";
-Chart.defaults.color = '#94a3b8';
+Chart.defaults.font.family = "ui-sans-serif, system-ui, sans-serif";
+Chart.defaults.color = '#9ca3af';
 
-/* PHP → JS data */
-const estadosRaw = {
-    labels: [<?php $__currentLoopData = $por_estado; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $k=>$v): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?> <?php $m=['abierto'=>'Abierto','en_gestion'=>'En gestión','asignado'=>'Asignado','pendiente_cliente'=>'Pend. cliente','cancelado_cliente'=>'Cancelado','cerrado'=>'Cerrado']; ?> "<?php echo e($m[$k]??$k); ?>",<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>],
+/* ── data ── */
+const dEstado = {
+    labels: [<?php $__currentLoopData = $por_estado; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $k=>$v): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?> "<?php echo e($estadoLabels[$k]??$k); ?>",<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>],
     data:   [<?php $__currentLoopData = $por_estado; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $v): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?> <?php echo e($v); ?>,<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>],
     colors: ['#3b82f6','#8b5cf6','#f59e0b','#f97316','#94a3b8','#22c55e']
 };
-const tecnicosRaw = {
-    labels:   [<?php $__currentLoopData = $por_tecnico; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?> "<?php echo e(addslashes($i->tecnico->name??'—')); ?>",<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>],
-    abiertos: [<?php $__currentLoopData = $por_tecnico; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?> <?php echo e($i->abiertos??0); ?>,<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>],
-    cerrados: [<?php $__currentLoopData = $por_tecnico; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $i): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?> <?php echo e($i->cerrados??0); ?>,<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>],
-};
-const tiposRaw = {
-    <?php $tm=['incidencia_hardware'=>'Inc. Hardware','incidencia_software'=>'Inc. Software','requerimiento'=>'Requerimiento']; ?>
-    labels: [<?php $__currentLoopData = $por_tipo; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $k=>$v): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?> "<?php echo e($tm[$k]??$k); ?>",<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>],
+const dTipo = {
+    labels: [<?php $__currentLoopData = $por_tipo; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $k=>$v): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?> "<?php echo e($tipoLabels[$k]??$k); ?>",<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>],
     data:   [<?php $__currentLoopData = $por_tipo; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $v): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?> <?php echo e($v); ?>,<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>],
     colors: ['#ef4444','#3b82f6','#10b981']
 };
-const tendenciaRaw = {
+const dTend = {
     labels: [<?php $__currentLoopData = $tendencia; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $t): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?> "<?php echo e(\Carbon\Carbon::createFromFormat('Y-m',$t->mes)->locale('es')->isoFormat('MMM YY')); ?>",<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>],
     data:   [<?php $__currentLoopData = $tendencia; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $t): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?> <?php echo e($t->total); ?>,<?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?>]
 };
 
-/* Donut */
-function donut(id, legendId, labels, data, colors) {
+/* ── donut ── */
+function donut(id, legId, labels, data, colors, size=150) {
     const ctx = document.getElementById(id);
     if (!ctx) return;
+    ctx.width = size; ctx.height = size;
     new Chart(ctx, {
         type: 'doughnut',
-        data: { labels, datasets:[{ data, backgroundColor: colors, borderWidth:2, borderColor:'#fff', hoverOffset:6 }] },
+        data: { labels, datasets:[{ data, backgroundColor:colors, borderWidth:2, borderColor:'#fff', hoverOffset:4 }] },
         options: {
-            cutout: '68%',
-            plugins: {
-                legend: { display:false },
-                tooltip: { callbacks:{ label: c => ` ${c.label}: ${c.raw} tickets` } }
-            }
+            cutout:'70%', responsive:false,
+            plugins:{ legend:{display:false}, tooltip:{ callbacks:{ label: c=>' '+c.label+': '+c.raw } } }
         }
     });
     const total = data.reduce((a,b)=>a+b,0);
-    const leg = document.getElementById(legendId);
+    const leg = document.getElementById(legId);
     if (!leg) return;
-    labels.forEach((l,i) => {
-        const pct = total>0 ? Math.round(data[i]/total*100) : 0;
+    labels.forEach((l,i)=>{
+        const pct = total>0?Math.round(data[i]/total*100):0;
         leg.innerHTML += `<div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:2px 0">
             <div style="display:flex;align-items:center;gap:6px">
-                <span style="width:9px;height:9px;border-radius:2px;background:${colors[i]};display:inline-block;flex-shrink:0"></span>
+                <span style="width:8px;height:8px;border-radius:2px;background:${colors[i]};display:inline-block;flex-shrink:0"></span>
                 <span style="color:#374151;font-weight:500">${l}</span>
             </div>
-            <span style="color:#64748b;font-weight:600">${data[i]}<span style="color:#cbd5e1;font-weight:400"> (${pct}%)</span></span>
+            <span style="color:#6b7280;font-weight:700">${data[i]} <span style="color:#d1d5db;font-weight:400">(${pct}%)</span></span>
         </div>`;
     });
 }
 
-/* Grouped bar */
-function bars() {
-    const ctx = document.getElementById('chartTecnicos');
-    if (!ctx) return;
-    if (!tecnicosRaw.labels.length) {
-        ctx.parentElement.innerHTML = '<div style="display:flex;align-items:center;justify-content:center;height:160px;color:#94a3b8;font-size:13px">Sin técnicos asignados</div>';
-        return;
-    }
-    new Chart(ctx, {
-        type: 'bar',
-        data: {
-            labels: tecnicosRaw.labels,
-            datasets: [
-                { label:'Activos',  data:tecnicosRaw.abiertos, backgroundColor:'rgba(59,130,246,0.15)', borderColor:'#3b82f6', borderWidth:1.5, borderRadius:5 },
-                { label:'Cerrados', data:tecnicosRaw.cerrados, backgroundColor:'rgba(34,197,94,0.15)',  borderColor:'#22c55e', borderWidth:1.5, borderRadius:5 },
-            ]
-        },
-        options: {
-            responsive:true,
-            plugins:{ legend:{ position:'bottom', labels:{ boxWidth:10, padding:12, font:{size:11} } } },
-            scales:{
-                x:{ grid:{display:false}, ticks:{font:{size:10}} },
-                y:{ grid:{color:'#f8fafc'}, ticks:{precision:0,font:{size:10}}, beginAtZero:true }
-            }
-        }
-    });
-}
-
-/* Line tendencia */
-function line() {
-    const ctx = document.getElementById('chartTendencia');
-    if (!ctx || !tendenciaRaw.labels.length) return;
+/* ── line ── */
+function buildLine() {
+    const ctx = document.getElementById('cTendencia');
+    if (!ctx || !dTend.labels.length) return;
     new Chart(ctx, {
         type:'line',
-        data:{
-            labels: tendenciaRaw.labels,
-            datasets:[{
-                label:'Tickets', data:tendenciaRaw.data,
-                fill:true, backgroundColor:'rgba(220,38,38,0.06)',
-                borderColor:'#dc2626', borderWidth:2,
-                pointBackgroundColor:'#dc2626', pointRadius:4, pointHoverRadius:6,
-                tension:0.4
-            }]
-        },
+        data:{ labels:dTend.labels, datasets:[{
+            label:'Tickets', data:dTend.data,
+            fill:true, backgroundColor:'rgba(220,38,38,0.06)', borderColor:'#dc2626',
+            borderWidth:2, pointBackgroundColor:'#dc2626', pointRadius:3,
+            pointHoverRadius:5, tension:0.4
+        }]},
         options:{
             responsive:true,
             plugins:{ legend:{display:false} },
             scales:{
-                x:{ grid:{display:false}, ticks:{font:{size:11}} },
-                y:{ grid:{color:'#f8fafc'}, ticks:{precision:0,font:{size:11}}, beginAtZero:true }
+                x:{ grid:{display:false}, ticks:{font:{size:10}} },
+                y:{ grid:{color:'#f9fafb'}, ticks:{precision:0,font:{size:10}}, beginAtZero:true }
             }
         }
     });
 }
 
-donut('chartEstados','legendEstados', estadosRaw.labels, estadosRaw.data, estadosRaw.colors);
-donut('chartTipos',  'legendTipos',   tiposRaw.labels,   tiposRaw.data,   tiposRaw.colors);
-bars();
-line();
+donut('cEstado','legEstado', dEstado.labels, dEstado.data, dEstado.colors);
+donut('cTipo',  'legTipo',   dTipo.labels,   dTipo.data,   dTipo.colors);
+buildLine();
+
+/* ── MAPA ── */
+const tooltip = document.getElementById('mapTooltip');
+let activeRegion = null;
+
+document.querySelectorAll('.region-path').forEach(path => {
+    path.addEventListener('mouseenter', e => {
+        tooltip.textContent = path.dataset.region;
+        tooltip.style.opacity = '1';
+    });
+    path.addEventListener('mousemove', e => {
+        tooltip.style.left = (e.clientX + 12) + 'px';
+        tooltip.style.top  = (e.clientY - 28) + 'px';
+    });
+    path.addEventListener('mouseleave', () => {
+        tooltip.style.opacity = '0';
+    });
+    path.addEventListener('click', () => {
+        const reg = path.dataset.region;
+        if (activeRegion === reg) {
+            clearRegion();
+            return;
+        }
+        document.querySelectorAll('.region-path').forEach(p => p.classList.remove('active'));
+        path.classList.add('active');
+        activeRegion = reg;
+        document.getElementById('btnClearRegion').style.display = 'inline-block';
+        // Aquí podrías hacer filtrado real; por ahora muestra un indicador visual
+        console.log('Región seleccionada:', reg);
+    });
+});
+
+function clearRegion() {
+    document.querySelectorAll('.region-path').forEach(p => p.classList.remove('active'));
+    activeRegion = null;
+    document.getElementById('btnClearRegion').style.display = 'none';
+}
 </script>
 <?php $__env->stopSection(); ?>
 <?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH E:\Projects\techportal\resources\views/incidencias/dashboard.blade.php ENDPATH**/ ?>

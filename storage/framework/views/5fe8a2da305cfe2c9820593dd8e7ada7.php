@@ -1,34 +1,42 @@
-@extends('layouts.app')
+<?php $__env->startSection('title', 'Continuar Orden Parcial'); ?>
+<?php $__env->startSection('page-title', 'Continuar Orden Parcial'); ?>
+<?php $__env->startSection('page-subtitle', $mantencion->numero_orden . ' · Guardado parcial pendiente'); ?>
 
-@section('title', 'Nueva Orden de Mantención')
-@section('page-title', 'Nueva Orden de Mantención')
-@section('page-subtitle', 'Mantención preventiva · Todos los campos son obligatorios')
-
-@section('topbar-actions')
-    <a href="{{ route('mantencion.index') }}"
+<?php $__env->startSection('topbar-actions'); ?>
+    <a href="<?php echo e(route('mantencion.index')); ?>"
        class="text-sm text-gray-500 hover:text-gray-700 border border-gray-200 px-4 py-2 rounded-lg transition-colors">
         ← Volver
     </a>
-@endsection
+<?php $__env->stopSection(); ?>
 
-@section('content')
+<?php $__env->startSection('content'); ?>
 
-{{-- BLOQUE DE ERRORES --}}
-@if ($errors->any())
+
+<div class="bg-amber-50 border border-amber-200 text-amber-800 rounded-xl px-5 py-4 mb-5 text-sm flex items-center gap-3">
+    <span class="text-xl">⚠️</span>
+    <div>
+        <strong>Orden guardada parcialmente.</strong>
+        Completa los datos faltantes y firma para enviar la orden definitivamente.
+    </div>
+</div>
+
+<?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($errors->any()): ?>
     <div class="bg-red-50 border border-red-200 text-red-700 rounded-xl px-5 py-4 mb-5 text-sm">
         <strong>Por favor corrige los siguientes errores:</strong>
         <ul class="mt-2 list-disc list-inside">
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__currentLoopData = $errors->all(); $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $error): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoop($loop->index); ?><?php endif; ?>
+                <li><?php echo e($error); ?></li>
+            <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?><?php endif; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?><?php endif; ?>
         </ul>
     </div>
-@endif
+<?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
 
-<form id="formChecklist" method="POST" action="{{ route('mantencion.store') }}" enctype="multipart/form-data">
-@csrf
+<form id="formChecklist" method="POST" action="<?php echo e(route('mantencion.store')); ?>" enctype="multipart/form-data">
+<?php echo csrf_field(); ?>
 
-{{-- DATOS DEL SERVICIO --}}
+<input type="hidden" name="orden_parcial_id" value="<?php echo e($mantencion->id); ?>">
+
+
 <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-5">
     <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
         <span>📋</span>
@@ -38,12 +46,14 @@
         <div>
             <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Fecha <span class="text-red-500">*</span></label>
             <input type="text" name="fecha_display" id="fechaHoy" readonly
+                value="<?php echo e($mantencion->fecha->format('d/m/Y')); ?>"
                 class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50 text-gray-500 cursor-not-allowed select-none focus:outline-none">
-            <input type="hidden" name="fecha" id="fechaReal">
+            <input type="hidden" name="fecha" id="fechaReal" value="<?php echo e($mantencion->fecha->format('Y-m-d')); ?>">
         </div>
         <div>
             <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Hora inicio <span class="text-red-500">*</span></label>
             <input type="text" name="hora_inicio" id="horaInicio" readonly
+                value="<?php echo e($mantencion->hora_inicio); ?>"
                 class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm bg-gray-50 text-gray-500 cursor-not-allowed select-none focus:outline-none">
         </div>
         <div>
@@ -55,7 +65,7 @@
     </div>
 </div>
 
-{{-- DATOS DEL CLIENTE --}}
+
 <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-5">
     <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
         <span>🏢</span>
@@ -67,46 +77,44 @@
             <select name="cliente_id" required
                 class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
                 <option value="">— Seleccionar cliente —</option>
-                @foreach($clientes as $cliente)
-                    <option value="{{ $cliente->id }}">{{ $cliente->nombre }}</option>
-                @endforeach
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::openLoop(); ?><?php endif; ?><?php $__currentLoopData = $clientes; $__env->addLoop($__currentLoopData); foreach($__currentLoopData as $cliente): $__env->incrementLoopIndices(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::startLoop($loop->index); ?><?php endif; ?>
+                    <option value="<?php echo e($cliente->id); ?>" <?php echo e($mantencion->cliente_id == $cliente->id ? 'selected' : ''); ?>>
+                        <?php echo e($cliente->nombre); ?>
+
+                    </option>
+                <?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::endLoop(); ?><?php endif; ?><?php endforeach; $__env->popLoop(); $loop = $__env->getLastLoop(); ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php \Livewire\Features\SupportCompiledWireKeys\SupportCompiledWireKeys::closeLoop(); ?><?php endif; ?>
             </select>
         </div>
         <div>
             <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Código local <span class="text-red-500">*</span></label>
-            <input type="text" name="codigo_local" required placeholder="Ej: LOC-001"
+            <input type="text" name="codigo_local" required value="<?php echo e($mantencion->codigo_local); ?>"
                 class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
         </div>
         <div>
             <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Ciudad <span class="text-red-500">*</span></label>
-            <input type="text" name="ciudad" required placeholder="Ej: Santiago"
+            <input type="text" name="ciudad" required value="<?php echo e($mantencion->ciudad); ?>"
                 class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
         </div>
         <div class="sm:col-span-2">
             <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Dirección <span class="text-red-500">*</span></label>
-            <input type="text" name="direccion" required placeholder="Ej: Av. Providencia 1234"
+            <input type="text" name="direccion" required value="<?php echo e($mantencion->direccion); ?>"
                 class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
         </div>
     </div>
 </div>
 
-{{-- EQUIPOS --}}
-<div id="equiposContainer"></div>
-{{-- EQUIPOS --}}
-<div id="equiposContainer"></div>
 
-{{-- BOTÓN AGREGAR (AFUERA) --}}
-<div class="mb-5">
-    <button type="button" onclick="agregarEquipo()"
-        class="w-full flex items-center justify-center gap-2 bg-white border-2 border-dashed border-gray-300 hover:border-red-400 text-gray-500 hover:text-red-600 rounded-xl py-4 text-sm font-bold transition-all shadow-sm group">
-        <span class="text-lg group-hover:scale-125 transition-transform">➕</span> 
-        Agregar un nuevo equipo a la orden
-    </button>
+<?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if BLOCK]><![endif]--><?php endif; ?><?php if($mantencion->equipos->isNotEmpty()): ?>
+<div class="bg-amber-50 border border-amber-200 rounded-xl px-5 py-3 mb-3 text-sm text-amber-700">
+    ℹ️ Los equipos guardados anteriormente se muestran abajo. Puedes agregar más o modificarlos.
+</div>
+<?php endif; ?><?php if(\Livewire\Mechanisms\ExtendBlade\ExtendBlade::isRenderingLivewireComponent()): ?><!--[if ENDBLOCK]><![endif]--><?php endif; ?>
+
+<div id="equiposContainer">
+    
 </div>
 
-{{-- FIRMA --}}
-<div class="bg-white border border-gray-200 rounded-xl shadow-sm ...">
-{{-- FIRMA --}}
+
 <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-5">
     <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
         <span>✍️</span>
@@ -148,23 +156,18 @@
     </div>
 </div>
 
-{{-- ACCIONES --}}
+
 <div class="bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden">
     <div class="p-5 flex flex-col sm:flex-row gap-3">
-
-        {{-- Enviar orden completa --}}
         <button type="button" onclick="enviarFormulario()" id="btnEnviar"
             class="flex-1 flex items-center justify-center gap-2 bg-red-600 hover:bg-red-700 text-white font-semibold py-3 rounded-lg text-sm transition-colors shadow-sm">
             📤 Enviar Orden
         </button>
-
-        {{-- ✅ Guardado parcial --}}
         <button type="button" onclick="guardarParcial()" id="btnParcial"
             class="flex-1 flex items-center justify-center gap-2 bg-amber-500 hover:bg-amber-600 text-white font-semibold py-3 rounded-lg text-sm transition-colors shadow-sm">
-            💾 Guardado Parcial
+            💾 Actualizar Parcial
         </button>
-
-        <a href="{{ route('mantencion.index') }}"
+        <a href="<?php echo e(route('mantencion.index')); ?>"
             class="flex-1 flex items-center justify-center gap-2 border border-gray-300 hover:border-gray-400 text-gray-600 font-semibold py-3 rounded-lg text-sm transition-colors">
             Cancelar
         </a>
@@ -172,14 +175,14 @@
     <div class="px-5 pb-4 text-center">
         <p class="text-xs text-gray-400 font-mono">
             📤 Enviar Orden requiere firma del receptor ·
-            💾 Guardado Parcial guarda sin firma para continuar después
+            💾 Actualizar Parcial guarda sin firma para continuar después
         </p>
     </div>
 </div>
 
 </form>
 
-{{-- MODAL FIRMA AMPLIADA --}}
+
 <div id="modalFirma" class="fixed inset-0 bg-black/70 z-50 hidden items-center justify-center p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-lg">
         <div class="px-6 py-4 border-b border-gray-100 flex items-center justify-between">
@@ -204,16 +207,19 @@
     </div>
 </div>
 
-{{-- TOAST --}}
+
 <div id="toast" class="fixed bottom-6 right-6 z-50 hidden">
     <div id="toastInner" class="px-5 py-3 rounded-xl shadow-lg text-sm font-semibold flex items-center gap-2"></div>
 </div>
 
-@endsection
+<?php $__env->stopSection(); ?>
 
-@push('scripts')
+<?php $__env->startPush('scripts'); ?>
 <script>
-const ITEMS = @json($items);
+const ITEMS = <?php echo json_encode($items, 15, 512) ?>;
+
+const EQUIPOS_GUARDADOS = <?php echo json_encode($equiposGuardados, 15, 512) ?>;
+
 
 const OPCIONES_A = ['operativo','defectuoso','no_aplica'];
 const OPCIONES_B = ['realizado','no_realizado','no_aplica'];
@@ -232,107 +238,77 @@ const COLOR_OPCIONES = {
 let equipoCount = 0;
 
 document.addEventListener('DOMContentLoaded', () => {
-    const hoy  = new Date();
-    const dia  = String(hoy.getDate()).padStart(2,'0');
-    const mes  = String(hoy.getMonth()+1).padStart(2,'0');
-    const anio = hoy.getFullYear();
-    document.getElementById('fechaHoy').value  = `${dia}/${mes}/${anio}`;
-    document.getElementById('fechaReal').value = `${anio}-${mes}-${dia}`;
-
-    const horas   = String(hoy.getHours()).padStart(2,'0');
-    const minutos = String(hoy.getMinutes()).padStart(2,'0');
-    document.getElementById('horaInicio').value = `${horas}:${minutos}`;
-
-    agregarEquipo();
     initFirma();
+
+    // Cargar equipos guardados previamente
+    if (EQUIPOS_GUARDADOS.length > 0) {
+        EQUIPOS_GUARDADOS.forEach((equipo, i) => {
+            agregarEquipo(equipo);
+        });
+    } else {
+        agregarEquipo();
+    }
 });
 
 // ═══════════════════════════════════════
 // EQUIPOS
 // ═══════════════════════════════════════
-function agregarEquipo() {
-    // 1. VALIDACIÓN: Si ya hay equipos, revisamos el último creado
-    if (equipoCount > 0) {
-        const ultimoEquipo = document.getElementById(`equipo-${equipoCount}`);
-        // Buscamos todos los inputs, selects y textareas requeridos del último equipo
-        const camposIncompletos = ultimoEquipo.querySelectorAll('input[required], select[required], textarea[required]');
-        
-        let faltaInformacion = false;
-        camposIncompletos.forEach(campo => {
-            if (!campo.value.trim()) {
-                faltaInformacion = true;
-                campo.classList.add('border-red-500'); // Opcional: marca el error en rojo
-            } else {
-                campo.classList.remove('border-red-500');
-            }
-        });
-
-        if (faltaInformacion) {
-            alert("Por favor, completa todos los campos del equipo actual antes de agregar uno nuevo.");
-            // Si está minimizado, lo abrimos para que el técnico vea qué falta
-            const body = document.getElementById(`equipo-body-${equipoCount}`);
-            if (body) body.classList.remove('hidden');
-            return; // Detiene la ejecución: no se agrega el nuevo equipo
-        }
-    }
-
-    // 2. Si pasó la validación, procedemos con tu lógica de minimizado
-    document.querySelectorAll('[id^="equipo-body-"]').forEach(el => el.classList.add('hidden'));
-    document.querySelectorAll('[id^="flecha-"]').forEach(el => el.innerText = '►');
-
-    // ... el resto de tu código (equipoCount++, innerHTML, etc.)
+function agregarEquipo(datosGuardados = null) {
     equipoCount++;
     const idx = equipoCount;
     const container = document.getElementById('equiposContainer');
-    document.querySelectorAll('[id^="equipo-body-"]').forEach(el => el.classList.add('hidden'));
     const div = document.createElement('div');
     div.id = `equipo-${idx}`;
     div.className = 'bg-white border border-gray-200 rounded-xl shadow-sm overflow-hidden mb-5';
+
+    const tipoVal   = datosGuardados?.tipo          || '';
+    const marcaVal  = datosGuardados?.marca         || '';
+    const modeloVal = datosGuardados?.modelo        || '';
+    const serieVal  = datosGuardados?.serie         || '';
+    const obsVal    = datosGuardados?.observaciones || '';
+    const estadoVal = datosGuardados?.estado_final  || '';
+
     div.innerHTML = `
-       <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2 cursor-pointer hover:bg-gray-100 transition-colors" 
-     onclick="toggleEquipo(${idx})">
-    <span>🖥️</span>
-    <span class="font-bold text-gray-900 text-sm">Equipo ${idx}</span>
-    <span class="ml-auto text-xs font-mono bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full" id="badge-${idx}">Sin completar</span>
-    
-    <div class="flex items-center gap-2 ml-2">
-        <span id="flecha-${idx}" class="text-gray-400 text-xs transition-transform">▼</span>
-        ${idx > 1 ? `<button type="button" onclick="event.stopPropagation(); eliminarEquipo(${idx})"
-            class="text-xs text-red-400 hover:text-red-600 border border-red-100 rounded px-2 py-0.5 bg-white transition-colors">✕</button>` : ''}
-    </div>
-</div>
-       <div id="equipo-body-${idx}" class="transition-all">
-    <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-gray-100">
+        <div class="px-5 py-3 border-b border-gray-100 bg-gray-50 flex items-center gap-2">
+            <span>🖥️</span>
+            <span class="font-bold text-gray-900 text-sm">Equipo ${idx}</span>
+            <span class="ml-auto text-xs font-mono bg-gray-100 text-gray-500 px-2 py-0.5 rounded-full" id="badge-${idx}">
+                ${datosGuardados ? '✓ Guardado' : 'Sin completar'}
+            </span>
+            ${idx > 1 ? `<button type="button" onclick="eliminarEquipo(${idx})"
+                class="ml-2 text-xs text-red-400 hover:text-red-600 border border-red-100 rounded px-2 py-0.5 transition-colors">✕ Eliminar</button>` : ''}
+        </div>
+        <div class="p-5 grid grid-cols-1 sm:grid-cols-2 gap-4 border-b border-gray-100">
             <div class="sm:col-span-2">
                 <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Tipo de equipo <span class="text-red-500">*</span></label>
                 <select name="equipos[${idx}][tipo]" id="tipo-${idx}" required onchange="cargarChecklist(${idx})"
                     class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 focus:ring-2 focus:ring-red-100 transition-all">
                     <option value="">— Seleccionar tipo —</option>
                     <optgroup label="Impresoras">
-                        <option value="impresora_sin_adf">IMPRESORA SIN ADF</option>
-                        <option value="impresora_con_adf">IMPRESORA CON ADF</option>
-                        <option value="impresora_termica">IMPRESORA TÉRMICA</option>
+                        <option value="impresora_sin_adf" ${tipoVal==='impresora_sin_adf'?'selected':''}>IMPRESORA SIN ADF</option>
+                        <option value="impresora_con_adf" ${tipoVal==='impresora_con_adf'?'selected':''}>IMPRESORA CON ADF</option>
+                        <option value="impresora_termica" ${tipoVal==='impresora_termica'?'selected':''}>IMPRESORA TÉRMICA</option>
                     </optgroup>
                     <optgroup label="Computadores">
-                        <option value="computador_aio">COMPUTADOR ALL IN ONE</option>
-                        <option value="computador_desktop">COMPUTADOR DESKTOP</option>
-                        <option value="computador_notebook">COMPUTADOR NOTEBOOK</option>
+                        <option value="computador_aio"      ${tipoVal==='computador_aio'?'selected':''}>COMPUTADOR ALL IN ONE</option>
+                        <option value="computador_desktop"  ${tipoVal==='computador_desktop'?'selected':''}>COMPUTADOR DESKTOP</option>
+                        <option value="computador_notebook" ${tipoVal==='computador_notebook'?'selected':''}>COMPUTADOR NOTEBOOK</option>
                     </optgroup>
                 </select>
             </div>
             <div>
                 <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Marca <span class="text-red-500">*</span></label>
-                <input type="text" name="equipos[${idx}][marca]" required placeholder="Ej: HP"
+                <input type="text" name="equipos[${idx}][marca]" required value="${marcaVal}" placeholder="Ej: HP"
                     class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 transition-all">
             </div>
             <div>
                 <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Modelo <span class="text-red-500">*</span></label>
-                <input type="text" name="equipos[${idx}][modelo]" required placeholder="Ej: LaserJet M404"
+                <input type="text" name="equipos[${idx}][modelo]" required value="${modeloVal}" placeholder="Ej: LaserJet M404"
                     class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 transition-all">
             </div>
             <div class="sm:col-span-2">
                 <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Número de serie <span class="text-red-500">*</span></label>
-                <input type="text" name="equipos[${idx}][serie]" required placeholder="Ej: VNB3R12345"
+                <input type="text" name="equipos[${idx}][serie]" required value="${serieVal}" placeholder="Ej: VNB3R12345"
                     class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 transition-all">
             </div>
         </div>
@@ -341,7 +317,7 @@ function agregarEquipo() {
             <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Observaciones <span class="text-red-500">*</span></label>
             <textarea name="equipos[${idx}][observaciones]" required rows="2"
                 placeholder="Notas técnicas, hallazgos, recomendaciones..."
-                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 transition-all resize-none"></textarea>
+                class="w-full border border-gray-200 rounded-lg px-3 py-2.5 text-sm focus:outline-none focus:border-red-400 transition-all resize-none">${obsVal}</textarea>
         </div>
         <div class="px-5 pb-5">
             <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-3">Estado final <span class="text-red-500">*</span></label>
@@ -350,21 +326,24 @@ function agregarEquipo() {
             </div>
             <div class="grid grid-cols-3 gap-3">
                 <label class="cursor-pointer" id="btn-op-${idx}">
-                    <input type="radio" name="equipos[${idx}][estado_final]" value="operativo" class="sr-only peer" onchange="onEstadoChange(${idx})">
+                    <input type="radio" name="equipos[${idx}][estado_final]" value="operativo" class="sr-only peer"
+                        ${estadoVal==='operativo'?'checked':''} onchange="onEstadoChange(${idx})">
                     <div class="border-2 border-gray-200 rounded-xl p-3 text-center peer-checked:border-green-500 peer-checked:bg-green-50 hover:border-gray-300 transition-all">
                         <div class="text-xl mb-1">✅</div>
                         <div class="text-xs font-semibold text-gray-900">Operativo</div>
                     </div>
                 </label>
                 <label class="cursor-pointer" id="btn-obs-${idx}">
-                    <input type="radio" name="equipos[${idx}][estado_final]" value="operativo_con_observaciones" class="sr-only peer" onchange="onEstadoChange(${idx})">
+                    <input type="radio" name="equipos[${idx}][estado_final]" value="operativo_con_observaciones" class="sr-only peer"
+                        ${estadoVal==='operativo_con_observaciones'?'checked':''} onchange="onEstadoChange(${idx})">
                     <div class="border-2 border-gray-200 rounded-xl p-3 text-center peer-checked:border-amber-500 peer-checked:bg-amber-50 hover:border-gray-300 transition-all">
                         <div class="text-xl mb-1">⚠️</div>
                         <div class="text-xs font-semibold text-gray-900">Operativo c/obs.</div>
                     </div>
                 </label>
                 <label class="cursor-pointer" id="btn-def-${idx}">
-                    <input type="radio" name="equipos[${idx}][estado_final]" value="defectuoso" class="sr-only peer" onchange="onEstadoChange(${idx})">
+                    <input type="radio" name="equipos[${idx}][estado_final]" value="defectuoso" class="sr-only peer"
+                        ${estadoVal==='defectuoso'?'checked':''} onchange="onEstadoChange(${idx})">
                     <div class="border-2 border-gray-200 rounded-xl p-3 text-center peer-checked:border-red-500 peer-checked:bg-red-50 hover:border-gray-300 transition-all">
                         <div class="text-xl mb-1">❌</div>
                         <div class="text-xs font-semibold text-gray-900">Defectuoso</div>
@@ -374,49 +353,41 @@ function agregarEquipo() {
         </div>
         <div class="px-5 pb-5 grid grid-cols-2 gap-4 border-t border-gray-100 pt-4">
             <div>
-                <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Foto del equipo <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Foto del equipo</label>
                 <input type="file" name="equipos[${idx}][foto_equipo]" accept="image/*" capture="environment"
                     class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-600 hover:file:bg-red-100 transition-all">
             </div>
             <div>
-                <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Foto número de serie <span class="text-red-500">*</span></label>
+                <label class="block text-xs font-mono text-gray-500 uppercase tracking-wider mb-1">Foto número de serie</label>
                 <input type="file" name="equipos[${idx}][foto_serie]" accept="image/*" capture="environment"
                     class="w-full text-sm text-gray-500 file:mr-3 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-red-50 file:text-red-600 hover:file:bg-red-100 transition-all">
             </div>
-        </div>  
         </div>
+        <div class="px-5 pb-5 pt-2 flex gap-3 border-t border-gray-100">
+            <button type="button" onclick="agregarEquipo()"
+                class="flex-1 flex items-center justify-center gap-2 border-2 border-dashed border-gray-300 hover:border-red-400 text-gray-400 hover:text-red-500 rounded-lg py-2.5 text-sm font-semibold transition-all">
+                ＋ Agregar otro equipo
+            </button>
         </div>`;
+
     container.appendChild(div);
-}
 
-
-function actualizarEstadoFoto(idx, tipo) {
-    const btn = document.getElementById(`btn-foto-${tipo}-${idx}`);
-    const input = document.getElementById(`file-${tipo}-${idx}`);
-
-    if (input.files && input.files[0]) {
-        // Cambiamos el estilo del botón a "Cargado"
-        btn.classList.remove('bg-gray-50', 'border-gray-300', 'text-gray-600');
-        btn.classList.add('bg-green-50', 'border-green-500', 'text-green-700');
-        btn.innerHTML = `
-            <span class="text-lg">✅</span>
-            <span class="text-xs font-bold uppercase">Foto Lista</span>
-        `;
-        
-        // Opcional: mostrar un Toast de éxito
-        mostrarToast(`Foto de ${tipo} cargada`, 'success');
-    }
-}
-function toggleEquipo(idx) {
-    const body = document.getElementById(`equipo-body-${idx}`);
-    const flecha = document.getElementById(`flecha-${idx}`);
-    
-    if (body.classList.contains('hidden')) {
-        body.classList.remove('hidden');
-        flecha.textContent = '▼';
-    } else {
-        body.classList.add('hidden');
-        flecha.textContent = '▶';
+    // Si tiene datos guardados, cargar checklist y marcar respuestas
+    if (datosGuardados && datosGuardados.tipo) {
+        setTimeout(() => {
+            cargarChecklist(idx);
+            // Marcar respuestas guardadas
+            if (datosGuardados.checklist) {
+                setTimeout(() => {
+                    Object.entries(datosGuardados.checklist).forEach(([itemId, respuesta]) => {
+                        const radio = document.querySelector(`input[name="equipos[${idx}][checklist][${itemId}]"][value="${respuesta}"]`);
+                        if (radio) radio.checked = true;
+                    });
+                }, 100);
+            }
+            // Actualizar badge
+            if (estadoVal) actualizarBadge(idx);
+        }, 50);
     }
 }
 
@@ -497,9 +468,6 @@ function cargarChecklist(idx) {
     checkDiv.classList.remove('hidden');
 }
 
-// ═══════════════════════════════════════
-// LÓGICA ESTADO
-// ═══════════════════════════════════════
 function onRespuestaChange(idx, valor, esCritico, nombre) {
     if (valor !== 'defectuoso') { recalcularEstado(idx); return; }
     forzarDefectuoso(idx, nombre, esCritico);
@@ -650,113 +618,59 @@ document.getElementById('modalFirma').addEventListener('click', function(e) {
     if (e.target === this) cerrarModalFirma();
 });
 
-// ✅ Verificar si el canvas de firma tiene trazos
 function firmaEstaVacia() {
     const canvas = document.getElementById('firmaCanvas');
     const ctx    = canvas.getContext('2d');
     const data   = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
     for (let i = 3; i < data.length; i += 4) {
-        if (data[i] > 0) return false; // hay píxeles con alpha > 0
+        if (data[i] > 0) return false;
     }
     return true;
 }
 
-// ═══════════════════════════════════════
-// ENVIAR COMPLETO
-// ═══════════════════════════════════════
 function enviarFormulario() {
-    const form = document.getElementById('formChecklist');
-    
-    // 1. Quitar novalidate (por si se usó el parcial antes)
-    form.removeAttribute('novalidate');
-
-    // 2. Validar firma
-    if (firmaEstaVacia()) {
-        mostrarToast('Firma obligatoria para finalizar.', 'error');
-        return;
-    }
-
-    // 3. Capturar data del canvas
     const canvas = document.getElementById('firmaCanvas');
     document.getElementById('firmaData').value = canvas.toDataURL('image/png');
 
-    // 4. Validación nativa de todos los campos 'required'
-    if (form.reportValidity()) {
-        const btn = document.getElementById('btnEnviar');
-        btn.disabled = true;
-        btn.innerHTML = '📤 Finalizando...';
-        form.action = '{{ route("mantencion.store") }}'; // Ruta final
-        form.submit();
-    }
-}
-// ... (aquí termina tu función firmaEstaVacia)
+    const btn = document.getElementById('btnEnviar');
+    btn.disabled = true;
+    btn.innerHTML = '⏳ Enviando...';
+    btn.className = btn.className.replace('bg-red-600 hover:bg-red-700', 'bg-gray-400 cursor-not-allowed');
 
-// ═══════════════════════════════════════
-// ✅ ENVÍO FINAL (Agrégala aquí)
-// ═══════════════════════════════════════
-function enviarFormulario() {
-    const form = document.getElementById('formChecklist');
-    
-    // 1. Quitar la desactivación de validación por si se usó el parcial antes
-    form.removeAttribute('novalidate');
-
-    // 2. Validar firma (Obligatoria para finalizar)
-    if (firmaEstaVacia()) {
-        mostrarToast('La firma del receptor es obligatoria para finalizar la orden.', 'error');
-        abrirModalFirma();
-        return;
-    }
-
-    // 3. Pasar la firma del canvas al input hidden
-    const canvas = document.getElementById('firmaCanvas');
-    document.getElementById('firmaData').value = canvas.toDataURL('image/png');
-
-    // 4. Disparar validación nativa de HTML5 (required)
-    if (form.reportValidity()) {
-        const btn = document.getElementById('btnEnviar');
-        btn.disabled = true;
-        btn.innerHTML = '⏳ Enviando Orden Final...';
-        
-        // Aseguramos que vaya a la ruta de guardado definitivo
-        form.action = '{{ route("mantencion.store") }}';
-        form.submit();
-    }
+    document.getElementById('formChecklist').submit();
 }
 
-// ═══════════════════════════════════════
-// ✅ MODIFICACIÓN AL GUARDADO PARCIAL
-// ═══════════════════════════════════════
-// Reemplaza tu función guardarParcial() actual con esta para incluir el 'novalidate'
 function guardarParcial() {
     if (!firmaEstaVacia()) {
-        mostrarToast('No puedes guardar parcialmente cuando ya hay una firma.', 'error');
+        mostrarToast('No puedes guardar parcialmente cuando ya hay una firma. Usa "Enviar Orden" para finalizar.', 'error');
         return;
     }
 
+    // Quitar required para permitir envío parcial
+    document.querySelectorAll('#formChecklist input[required], #formChecklist textarea[required], #formChecklist select[required]').forEach(el => {
+        el.removeAttribute('required');
+    });
+
     const form = document.getElementById('formChecklist');
+    form.action = '<?php echo e(route("mantencion.store.parcial")); ?>';
+
     const btn = document.getElementById('btnParcial');
-
-    // 1. Cambiamos el action y desactivamos validación
-    form.action = '{{ route("mantencion.store.parcial") }}';
-    form.noValidate = true; // Forma directa de JS para novalidate
-
     btn.disabled = true;
-    btn.innerHTML = '⏳ Guardando progreso...';
+    btn.innerHTML = '⏳ Guardando...';
 
-    // 2. Usamos requestSubmit() en lugar de submit()
-    // Esto asegura que el formulario procese los cambios de atributos antes de salir
-    if (typeof form.requestSubmit === "function") {
-        form.requestSubmit();
-    } else {
-        form.submit();
-    }
+    form.submit();
+}
+
+function mostrarToast(msg, tipo='success') {
+    const toast = document.getElementById('toast');
+    const inner = document.getElementById('toastInner');
+    inner.textContent = msg;
+    inner.className = `px-5 py-3 rounded-xl shadow-lg text-sm font-semibold flex items-center gap-2 ${
+        tipo === 'error' ? 'bg-red-600 text-white' : 'bg-green-600 text-white'
+    }`;
+    toast.classList.remove('hidden');
+    setTimeout(() => toast.classList.add('hidden'), 4000);
 }
 </script>
-@if ($errors->any())
-<script>
-    document.addEventListener('DOMContentLoaded', () => {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
-    });
-</script>
-@endif
-@endpush
+<?php $__env->stopPush(); ?>
+<?php echo $__env->make('layouts.app', array_diff_key(get_defined_vars(), ['__data' => 1, '__path' => 1]))->render(); ?><?php /**PATH E:\Projects\techportal\resources\views/mantencion/edit-parcial.blade.php ENDPATH**/ ?>

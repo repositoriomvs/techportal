@@ -16,6 +16,11 @@ class ClienteController extends Controller
     {
         return view('clientes.create');
     }
+    public function adminIndex()
+{
+    $clientes = Cliente::withCount('documentos')->orderBy('nombre')->get();
+    return view('admin.gestionclientes', compact('clientes'));
+}
 
     public function store(Request $request)
     {

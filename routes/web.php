@@ -27,31 +27,31 @@ Route::middleware('auth')->group(function () {
     Route::get('/buscar', [App\Http\Controllers\BuscadorController::class, 'index'])->name('buscar');
     Route::get('/buscar/ajax', [App\Http\Controllers\BuscadorController::class, 'ajax'])->name('buscar.ajax');
 
-    // Historial (debe estar dentro de auth)
+    // Historial
     Route::post('/historial/pagina', [App\Http\Controllers\HistorialController::class, 'actualizarPagina'])
         ->name('historial.pagina');
 
-    // Avisos (dentro de auth)
+    // Avisos
     Route::resource('avisos', App\Http\Controllers\AvisoController::class);
 
     // Clientes
     Route::resource('clientes', App\Http\Controllers\ClienteController::class);
 
     // Herramientas — ver y descargar para todos
-Route::get('/herramientas', [App\Http\Controllers\HerramientaController::class, 'index'])
-    ->name('herramientas.index');
-Route::get('/herramientas/{herramienta}/descargar', [App\Http\Controllers\HerramientaController::class, 'descargar'])
-    ->name('herramientas.descargar');
+    Route::get('/herramientas', [App\Http\Controllers\HerramientaController::class, 'index'])
+        ->name('herramientas.index');
+    Route::get('/herramientas/{herramienta}/descargar', [App\Http\Controllers\HerramientaController::class, 'descargar'])
+        ->name('herramientas.descargar');
 
-// Herramientas — gestión solo admin
-Route::middleware('role:admin')->group(function () {
-    Route::post('/herramientas', [App\Http\Controllers\HerramientaController::class, 'store'])
-        ->name('herramientas.store');
-    Route::put('/herramientas/{herramienta}', [App\Http\Controllers\HerramientaController::class, 'update'])
-        ->name('herramientas.update');
-    Route::delete('/herramientas/{herramienta}', [App\Http\Controllers\HerramientaController::class, 'destroy'])
-        ->name('herramientas.destroy');
-});
+    // Herramientas — gestión solo admin
+    Route::middleware('role:admin')->group(function () {
+        Route::post('/herramientas', [App\Http\Controllers\HerramientaController::class, 'store'])
+            ->name('herramientas.store');
+        Route::put('/herramientas/{herramienta}', [App\Http\Controllers\HerramientaController::class, 'update'])
+            ->name('herramientas.update');
+        Route::delete('/herramientas/{herramienta}', [App\Http\Controllers\HerramientaController::class, 'destroy'])
+            ->name('herramientas.destroy');
+    });
 
     // Documentos
     Route::get('/clientes/{cliente}/documentos/create', [App\Http\Controllers\DocumentoController::class, 'create'])
@@ -78,14 +78,18 @@ Route::middleware('role:admin')->group(function () {
         ->name('hardware.recursos.descargar');
 
     // Métricas — admin y soporte
-Route::get('/admin-dashboard', [App\Http\Controllers\AdminDashboardController::class, 'index'])
-    ->name('admin.dashboard')
-    ->middleware('role:admin|soporte');
+    Route::get('/admin-dashboard', [App\Http\Controllers\AdminDashboardController::class, 'index'])
+        ->name('admin.dashboard')
+        ->middleware('role:admin|soporte');
 
-// Solo admin
-Route::middleware('role:admin')->group(function () {
+    // Solo admin
+    Route::middleware('role:admin')->group(function () {
 
-    Route::resource('usuarios', App\Http\Controllers\UsuarioController::class);
+        Route::resource('usuarios', App\Http\Controllers\UsuarioController::class);
+
+        // ✅ NUEVO — Gestión de clientes desde panel admin
+        Route::get('/admin/clientes', [App\Http\Controllers\ClienteController::class, 'adminIndex'])
+            ->name('admin.clientes');
 
         // Hardware — gestión
         Route::post('/hardware/tipos', [App\Http\Controllers\HardwareController::class, 'storeTipo'])
@@ -109,59 +113,61 @@ Route::middleware('role:admin')->group(function () {
         Route::put('/hardware/recursos/{recurso}', [App\Http\Controllers\HardwareRecursoController::class, 'update'])
             ->name('hardware.recursos.update');
     });
-    // Mantención
-    Route::middleware('role:admin|tecnico')->group(function () {
-        Route::get('/mantencion', [App\Http\Controllers\MantencionController::class, 'index'])
-            ->name('mantencion.index');
-        Route::get('/mantencion/create', [App\Http\Controllers\MantencionController::class, 'create'])
-            ->name('mantencion.create');
-        Route::post('/mantencion', [App\Http\Controllers\MantencionController::class, 'store'])
-            ->name('mantencion.store');
-        Route::get('/mantencion/{mantencion}', [App\Http\Controllers\MantencionController::class, 'show'])
-            ->name('mantencion.show');
-        Route::get('/mantencion/{mantencion}/pdf', [App\Http\Controllers\MantencionController::class, 'pdf'])
-            ->name('mantencion.pdf');
-    });
 
+// Mantención
+Route::middleware('role:admin|tecnico')->group(function () {
+    Route::get('/mantencion', [App\Http\Controllers\MantencionController::class, 'index'])
+        ->name('mantencion.index');
+    Route::get('/mantencion/create', [App\Http\Controllers\MantencionController::class, 'create'])
+        ->name('mantencion.create');
+    Route::post('/mantencion', [App\Http\Controllers\MantencionController::class, 'store'])
+        ->name('mantencion.store');
+
+    // ✅ NUEVAS — guardado parcial
+    Route::post('/mantencion/parcial', [App\Http\Controllers\MantencionController::class, 'storeParcial'])
+        ->name('mantencion.store.parcial');
+    Route::get('/mantencion/{mantencion}/editar-parcial', [App\Http\Controllers\MantencionController::class, 'editParcial'])
+        ->name('mantencion.edit.parcial');
+
+    Route::get('/mantencion/{mantencion}', [App\Http\Controllers\MantencionController::class, 'show'])
+        ->name('mantencion.show');
+    Route::get('/mantencion/{mantencion}/pdf', [App\Http\Controllers\MantencionController::class, 'pdf'])
+        ->name('mantencion.pdf');
+});
     // LOCALES (AJAX)
-Route::middleware('auth')->group(function () {
     Route::get('/locales/por-cliente/{cliente}', [LocalController::class, 'porCliente']);
     Route::post('/locales', [LocalController::class, 'store'])->name('locales.store');
-});
 
-// INCIDENCIAS
-Route::middleware(['auth', 'role:admin|supervisor|agente'])->group(function () {
-    // Primero las rutas sin parámetro
-    Route::get('/incidencias', [IncidenciaController::class, 'index'])->name('incidencias.index');
-    Route::get('/incidencias/create', [IncidenciaController::class, 'create'])->name('incidencias.create');
-    Route::get('/incidencias/dashboard', [IncidenciaController::class, 'dashboard'])->name('incidencias.dashboard');
-    Route::get('/incidencias/reportes', [IncidenciaController::class, 'reportes'])->name('incidencias.reportes');
-    Route::get('/incidencias/exportar-excel', [IncidenciaController::class, 'exportarExcel'])->name('incidencias.excel');
-    Route::get('/incidencias/exportar-pdf', [IncidenciaController::class, 'exportarPdf'])->name('incidencias.pdf');
-    Route::post('/incidencias', [IncidenciaController::class, 'store'])->name('incidencias.store');
-    
-    // Después las rutas con parámetro
-    Route::get('/incidencias/{incidencia}', [IncidenciaController::class, 'show'])->name('incidencias.show');
-    Route::patch('/incidencias/{incidencia}/asignar', [IncidenciaController::class, 'asignar'])->name('incidencias.asignar');
-});
+    // INCIDENCIAS
+    Route::middleware('role:admin|supervisor|agente')->group(function () {
+        Route::get('/incidencias', [IncidenciaController::class, 'index'])->name('incidencias.index');
+        Route::get('/incidencias/create', [IncidenciaController::class, 'create'])->name('incidencias.create');
+        Route::get('/incidencias/dashboard', [IncidenciaController::class, 'dashboard'])->name('incidencias.dashboard');
+        Route::get('/incidencias/reportes', [IncidenciaController::class, 'reportes'])->name('incidencias.reportes');
+        Route::get('/incidencias/exportar-excel', [IncidenciaController::class, 'exportarExcel'])->name('incidencias.excel');
+        Route::get('/incidencias/exportar-pdf', [IncidenciaController::class, 'exportarPdf'])->name('incidencias.pdf');
+        Route::post('/incidencias', [IncidenciaController::class, 'store'])->name('incidencias.store');
+        Route::get('/incidencias/{incidencia}', [IncidenciaController::class, 'show'])->name('incidencias.show');
+        Route::patch('/incidencias/{incidencia}/asignar', [IncidenciaController::class, 'asignar'])->name('incidencias.asignar');
+    });
 
-Route::middleware(['auth', 'role:admin|tecnico'])->group(function () {
-    Route::get('/incidencias/{incidencia}/cierre', [IncidenciaController::class, 'formCierre'])->name('incidencias.cierre');
-    Route::post('/incidencias/{incidencia}/cierre', [IncidenciaController::class, 'guardarCierre'])->name('incidencias.cierre.guardar');
-});
+    // CIERRE TÉCNICO
+    Route::middleware('role:admin|tecnico')->group(function () {
+        Route::get('/incidencias/{incidencia}/cierre', [IncidenciaController::class, 'formCierre'])->name('incidencias.cierre');
+        Route::post('/incidencias/{incidencia}/cierre', [IncidenciaController::class, 'guardarCierre'])->name('incidencias.cierre.guardar');
+    });
 
-// CIERRE TÉCNICO
-Route::middleware(['auth', 'role:admin|tecnico'])->group(function () {
-    Route::get('/incidencias/{incidencia}/cierre', [IncidenciaController::class, 'formCierre'])->name('incidencias.cierre');
-    Route::post('/incidencias/{incidencia}/cierre', [IncidenciaController::class, 'guardarCierre'])->name('incidencias.cierre.guardar');
-});
+    // SLA por cliente
+    Route::get('/incidencias/sla/{cliente}', function($clienteId) {
+        $cliente = \App\Models\Cliente::find($clienteId);
+        if (!$cliente || !$cliente->tiene_sla) {
+            return response()->json(null);
+        }
+        return response()->json([
+            'horas_respuesta'     => $cliente->sla_horas_respuesta,
+            'horas_resolucion'    => $cliente->sla_horas_resolucion,
+            'horas_cambio_equipo' => $cliente->sla_horas_cambio_equipo,
+        ]);
+    });
 
-//CREA INCIDENCIAS
-Route::get('/incidencias/sla/{cliente}/{prioridad}', function($clienteId, $prioridad) {
-    return response()->json(
-        \App\Models\SlaCliente::where('cliente_id', $clienteId)
-            ->where('prioridad', $prioridad)
-            ->first(['horas_respuesta', 'horas_resolucion', 'horas_cambio_equipo'])
-    );
-})->middleware('auth');
 });
