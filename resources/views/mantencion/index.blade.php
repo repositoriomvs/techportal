@@ -33,6 +33,7 @@
                 <th class="text-left px-5 py-3 text-xs font-mono text-gray-400 uppercase tracking-wider hidden sm:table-cell">Cliente</th>
                 <th class="text-left px-5 py-3 text-xs font-mono text-gray-400 uppercase tracking-wider hidden md:table-cell">Técnico</th>
                 <th class="text-left px-5 py-3 text-xs font-mono text-gray-400 uppercase tracking-wider hidden md:table-cell">Fecha</th>
+                <th class="text-left px-5 py-3 text-xs font-mono text-gray-400 uppercase tracking-wider hidden md:table-cell">Hora Cierre</th>
                 <th class="text-left px-5 py-3 text-xs font-mono text-gray-400 uppercase tracking-wider">Equipos</th>
                 <th class="text-left px-5 py-3 text-xs font-mono text-gray-400 uppercase tracking-wider">Estado</th>
                 <th class="text-right px-5 py-3 text-xs font-mono text-gray-400 uppercase tracking-wider">Acciones</th>
@@ -53,6 +54,13 @@
                 <td class="px-5 py-3 hidden md:table-cell">
                     <span class="text-xs font-mono text-gray-400">{{ $orden->fecha->format('d/m/Y') }}</span>
                 </td>
+                <td class="px-5 py-3 hidden md:table-cell">
+    @if($orden->estado === 'parcial' || !$orden->hora_termino)
+        <span class="text-xs font-mono text-gray-300">—</span>
+    @else
+        <span class="text-xs font-mono text-gray-400">{{ \Carbon\Carbon::parse($orden->hora_termino)->format('H:i') }}</span>
+    @endif
+</td>
                 <td class="px-5 py-3">
                     <span class="text-xs font-mono bg-gray-100 text-gray-600 px-2 py-1 rounded-full">
                         {{ $orden->equipos->count() }} equipo(s)
